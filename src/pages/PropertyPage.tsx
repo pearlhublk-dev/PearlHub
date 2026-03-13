@@ -279,7 +279,7 @@ const PropertyPage = () => {
               <LeafletMap markers={[{ lat: selectedProp.lat, lng: selectedProp.lng, title: selectedProp.title, location: selectedProp.location, price: selectedProp.price, emoji: selectedProp.image, type: "property" }]} center={[selectedProp.lat, selectedProp.lng]} zoom={14} height="250px" />
               {currentUser === "customer" && (
                 <div className="flex gap-2.5 mt-5">
-                  <button onClick={() => { showToast("Enquiry sent! The owner/broker will contact you shortly.", "success"); setSelectedProp(null); }}
+                  <button onClick={() => setShowInquiry(true)}
                     className="flex-1 bg-emerald hover:bg-emerald-light text-accent-foreground py-3 rounded-lg font-bold transition-all">📞 Enquire Now</button>
                   <button onClick={() => toggleFavorite(selectedProp.id)}
                     className="px-6 py-3 rounded-lg font-bold border border-input bg-card hover:bg-background transition-all">
