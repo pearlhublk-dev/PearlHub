@@ -194,7 +194,7 @@ const DashboardPage = () => {
 
         {activeSection === "analytics" && currentUser !== "customer" && <AnalyticsDashboard />}
 
-        {activeSection === "enquiries" && (currentUser === "owner" || currentUser === "broker") && (
+        {activeSection === "enquiries" && (currentUser === "owner" || currentUser === "broker" || currentUser === "stay_provider" || currentUser === "event_organizer" || currentUser === "sme") && (
           <EnquiriesSection userId={user?.id} />
         )}
 
