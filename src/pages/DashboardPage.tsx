@@ -168,6 +168,10 @@ const DashboardPage = () => {
 
         {activeSection === "analytics" && currentUser !== "customer" && <AnalyticsDashboard />}
 
+        {activeSection === "enquiries" && (currentUser === "owner" || currentUser === "broker") && (
+          <EnquiriesSection userId={user?.id} />
+        )}
+
         {/* Rate Management - for owner/broker/admin */}
         {activeSection === "rates" && currentUser !== "customer" && <RateManagement />}
 
