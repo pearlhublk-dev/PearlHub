@@ -70,7 +70,7 @@ const EventsPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((evt, i) => (
             <motion.div key={evt.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              onClick={() => { setSelected(evt); setStep(1); setSelectedSeats([]); setQuantity(1); setTicketType("standard"); setGateTime("18:00"); setSeatConfig({ vipRows: Math.max(1, Math.floor(evt.seats.rows * 0.1)), premiumRows: Math.max(1, Math.floor(evt.seats.rows * 0.2)) }); }}
+              onClick={() => { setSelected(evt); setStep(1); setSelectedSeats([]); setQuantity(1); setTicketType("standard"); setGateTime("18:00"); setSeatConfig({ vipRows: Math.max(1, Math.floor(evt.seats.rows * 0.1)), premiumRows: Math.max(1, Math.floor(evt.seats.rows * 0.2)) }); addRecentlyViewed({ id: evt.id, title: evt.title, type: "event", price: evt.prices.standard, image: evt.image, location: evt.venue }); }}
               className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer border border-border flex">
               <div className="w-28 flex items-center justify-center text-5xl flex-shrink-0" style={{ background: "linear-gradient(135deg, hsl(256 57% 29% / 0.1), transparent)" }}>{evt.image}</div>
               <div className="p-4 flex-1">

@@ -126,7 +126,7 @@ const PropertyPage = () => {
             ) : (
               <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-4"}>
                 {filtered.map(prop => (
-                  <div key={prop.id} onClick={() => setSelectedProp(prop)} className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
+                  <div key={prop.id} onClick={() => { setSelectedProp(prop); addRecentlyViewed({ id: prop.id, title: prop.title, type: "property", price: prop.price, image: prop.image, location: prop.location }); }} className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
                     {viewMode === "grid" ? (
                       <>
                         <div className="h-44 bg-gradient-to-br from-emerald/10 to-emerald/[0.03] flex items-center justify-center text-6xl relative">

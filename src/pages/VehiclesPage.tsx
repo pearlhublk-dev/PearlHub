@@ -83,7 +83,7 @@ const VehiclesPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((v, i) => (
               <motion.div key={v.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                onClick={() => { setSelected(v); setForm({ startDate: "", endDate: "", pickupTime: "09:00", returnTime: "09:00", driver: v.driver === "included" ? "yes" : "no", agreedToTerms: false }); }}
+                onClick={() => { setSelected(v); setForm({ startDate: "", endDate: "", pickupTime: "09:00", returnTime: "09:00", driver: v.driver === "included" ? "yes" : "no", agreedToTerms: false }); addRecentlyViewed({ id: v.id, title: `${v.make} ${v.model}`, type: "vehicle", price: v.price, image: v.image, location: v.location }); }}
                 className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
                 <div className="h-36 bg-gradient-to-br from-ruby/10 to-ruby/[0.03] flex items-center justify-center text-5xl relative">
                   {v.image}

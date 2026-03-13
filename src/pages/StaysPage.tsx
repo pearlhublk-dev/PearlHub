@@ -102,7 +102,7 @@ const StaysPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((stay, i) => (
               <motion.div key={stay.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                onClick={() => { setSelectedStay(stay); setRoomType("standard"); setGuests(2); setSpecialRequests(""); setCheckInTime("14:00"); setCheckOutTime("11:00"); }}
+                onClick={() => { setSelectedStay(stay); setRoomType("standard"); setGuests(2); setSpecialRequests(""); setCheckInTime("14:00"); setCheckOutTime("11:00"); addRecentlyViewed({ id: stay.id, title: stay.name, type: "stay", price: stay.pricePerNight, image: stay.image, location: stay.location }); }}
                 className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
                 <div className="h-40 bg-gradient-to-br from-sapphire/10 to-sapphire/[0.03] flex items-center justify-center text-6xl relative">
                   {stay.image}
