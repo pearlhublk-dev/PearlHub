@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppContext } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types/pearl-hub";
 
 const Header = () => {
   const { currentUser, setCurrentUser, notifications, markNotificationRead } = useAppContext();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -13,22 +15,31 @@ const Header = () => {
   const navItems = [
     { path: "/property", label: "Property", icon: "🏘️" },
     { path: "/stays", label: "Stays", icon: "🏨" },
-    { path: "/vehicles", label: "Vehicles", icon: "🚗" },
+    { path: "/vehicles", label: "Rentals", icon: "🚗" },
     { path: "/events", label: "Events", icon: "🎭" },
-    { path: "/social", label: "Social", icon: "🌐" },
+    { path: "/social", label: "Social Hub", icon: "🌐" },
   ];
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleAuthAction = async () => {
+    if (user) {
+      await signOut();
+      navigate("/");
+    } else {
+      navigate("/auth");
+    }
+  };
 
   return (
     <header className="bg-obsidian sticky top-0 z-[500] border-b border-primary/20">
       <div className="container flex items-center gap-6 h-16">
         {/* Logo */}
         <div onClick={() => navigate("/")} className="cursor-pointer flex items-center gap-2.5 flex-shrink-0">
-          <div className="w-[38px] h-[38px] bg-gradient-to-br from-primary to-gold-dark rounded-full flex items-center justify-center text-lg animate-gold-glow">💎</div>
+          <img src="/favicon.png" alt="Pearl Hub" className="w-[38px] h-[38px] rounded-full object-contain animate-gold-glow" />
           <div>
             <div className="font-display font-bold text-lg text-pearl leading-none">Pearl Hub</div>
-            <div className="text-[9px] text-primary tracking-[2px] uppercase">Sri Lanka</div>
+            <div className="text-[9px] text-primary tracking-[2px] uppercase">Sri Lanka Premium</div>
           </div>
         </div>
 
@@ -79,7 +90,10 @@ const Header = () => {
             )}
           </div>
 
-          {/* Role Switcher */}
+          {/* Globe icon */}
+          <button className="bg-white/[0.08] border border-white/15 text-pearl rounded-md p-2 text-sm">🌐</button>
+
+          {/* Role Switcher - only show when logged in or for demo */}
           <select value={currentUser} onChange={e => setCurrentUser(e.target.value as UserRole)}
             className="bg-white/[0.08] border border-white/15 text-pearl rounded-md px-2.5 py-1.5 text-xs font-body cursor-pointer w-auto">
             <option value="customer">👤 Customer</option>
@@ -88,9 +102,9 @@ const Header = () => {
             <option value="admin">👑 Admin</option>
           </select>
 
-          <button onClick={() => navigate("/auth")}
+          <button onClick={handleAuthAction}
             className="bg-white/[0.08] border border-white/15 text-pearl rounded-md px-3 py-[7px] text-[13px] font-medium hover:bg-white/15 transition-all">
-            🔑 Login
+            {user ? "Sign Out" : "Sign In"}
           </button>
 
           <button onClick={() => navigate("/dashboard")}
@@ -120,9 +134,9 @@ const Header = () => {
                 <option value="broker">🏢 Broker</option>
                 <option value="admin">👑 Admin</option>
               </select>
-              <button onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }}
+              <button onClick={() => { handleAuthAction(); setMobileMenuOpen(false); }}
                 className="bg-white/[0.08] border border-white/15 text-pearl px-3 py-2 rounded-md text-xs">
-                🔑 Login
+                {user ? "Sign Out" : "Sign In"}
               </button>
               <button onClick={() => { navigate("/dashboard"); setMobileMenuOpen(false); }}
                 className="bg-gradient-to-br from-primary to-gold-dark text-primary-foreground px-4 py-2 rounded-md text-xs font-bold">

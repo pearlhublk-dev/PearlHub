@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 import { useAppContext } from "@/context/AppContext";
 
 const AuthPage = () => {
@@ -9,23 +10,49 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [role, setRole] = useState("customer");
   const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { showToast } = useAppContext();
+  const { signUp, signIn, resetPassword } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const roleOptions = [
+    { value: "customer", label: "👤 Customer / Buyer", desc: "Browse & book services" },
+    { value: "owner", label: "🏠 Property Owner", desc: "List & sell properties" },
+    { value: "broker", label: "🏢 Licensed Broker", desc: "Manage multiple listings" },
+    { value: "stay_provider", label: "🏨 Stay Provider", desc: "Hotels, villas, guest houses" },
+    { value: "event_organizer", label: "🎫 Event Organizer", desc: "List & manage events" },
+    { value: "sme", label: "🏪 SME / Business", desc: "List in SME directory" },
+  ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === "signup" && !agreed) {
       showToast("Please agree to the Terms & Conditions.", "error");
       return;
     }
-    if (mode === "forgot") {
-      showToast("Password reset link sent to your email!", "success");
-      setMode("login");
-      return;
+    setLoading(true);
+    try {
+      if (mode === "forgot") {
+        const { error } = await resetPassword(email);
+        if (error) { showToast(error.message, "error"); return; }
+        showToast("Password reset link sent to your email!", "success");
+        setMode("login");
+      } else if (mode === "signup") {
+        const { error } = await signUp(email, password, { full_name: name, phone, role });
+        if (error) { showToast(error.message, "error"); return; }
+        showToast("Account created successfully! Welcome to Pearl Hub.", "success");
+        navigate("/dashboard");
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) { showToast(error.message, "error"); return; }
+        showToast("Welcome back!", "success");
+        navigate("/dashboard");
+      }
+    } finally {
+      setLoading(false);
     }
-    showToast(mode === "login" ? "Welcome back!" : "Account created successfully!", "success");
-    navigate("/dashboard");
   };
 
   return (
@@ -35,7 +62,9 @@ const AuthPage = () => {
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-primary/[0.04]" />
         <div className="absolute -bottom-12 -left-12 w-72 h-72 rounded-full bg-emerald/[0.06]" />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center relative z-10">
-          <div className="w-20 h-20 bg-gradient-to-br from-primary to-gold-dark rounded-full flex items-center justify-center text-4xl mx-auto mb-6 animate-gold-glow">💎</div>
+          <div className="w-20 h-20 bg-gradient-to-br from-primary to-gold-dark rounded-full flex items-center justify-center text-4xl mx-auto mb-6 animate-gold-glow">
+            <img src="/favicon.png" alt="Pearl Hub" className="w-14 h-14 object-contain" />
+          </div>
           <h1 className="font-display text-pearl font-bold text-4xl mb-4">Pearl Hub</h1>
           <p className="text-fog text-lg max-w-md leading-relaxed">Sri Lanka's #1 marketplace for properties, stays, vehicles, and events.</p>
           <div className="flex gap-6 justify-center mt-8">
@@ -53,7 +82,7 @@ const AuthPage = () => {
       <div className="flex-1 flex items-center justify-center p-6">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-2.5 mb-8 justify-center">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-gold-dark rounded-full flex items-center justify-center text-lg animate-gold-glow">💎</div>
+            <img src="/favicon.png" alt="Pearl Hub" className="w-10 h-10 object-contain" />
             <div className="font-display font-bold text-xl">Pearl Hub</div>
           </div>
 
@@ -66,29 +95,6 @@ const AuthPage = () => {
                 {mode === "login" ? "Sign in to your Pearl Hub account" : mode === "signup" ? "Join Sri Lanka's premier marketplace" : "We'll send a reset link to your email"}
               </p>
 
-              {/* Social login buttons */}
-              {mode !== "forgot" && (
-                <div className="flex gap-2 mb-5">
-                  <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border border-input bg-card text-sm font-medium hover:bg-background transition-all">
-                    🔵 Google
-                  </button>
-                  <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border border-input bg-card text-sm font-medium hover:bg-background transition-all">
-                    ⚫ Apple
-                  </button>
-                  <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border border-input bg-card text-sm font-medium hover:bg-background transition-all">
-                    🔵 Facebook
-                  </button>
-                </div>
-              )}
-
-              {mode !== "forgot" && (
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="flex-1 h-px bg-border" />
-                  <span className="text-xs text-muted-foreground">or continue with email</span>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-              )}
-
               <form onSubmit={handleSubmit} className="flex flex-col gap-3">
                 {mode === "signup" && (
                   <>
@@ -99,6 +105,18 @@ const AuthPage = () => {
                     <div>
                       <label className="block text-xs font-semibold mb-1">Phone Number</label>
                       <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+94 77 123 4567" className="w-full rounded-lg border border-input px-3.5 py-2.5 text-sm bg-card" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1">Account Type</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {roleOptions.map(r => (
+                          <div key={r.value} onClick={() => setRole(r.value)}
+                            className={`p-2.5 border-2 rounded-lg cursor-pointer transition-all ${role === r.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`}>
+                            <div className="text-xs font-bold">{r.label}</div>
+                            <div className="text-[10px] text-muted-foreground">{r.desc}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </>
                 )}
@@ -120,12 +138,12 @@ const AuthPage = () => {
                 {mode === "signup" && (
                   <label className="flex items-start gap-2 text-xs text-muted-foreground">
                     <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-0.5 rounded" />
-                    <span>I agree to the <button type="button" onClick={() => navigate("/terms")} className="text-primary font-semibold underline">Terms & Conditions</button> and <button type="button" onClick={() => navigate("/privacy")} className="text-primary font-semibold underline">Privacy Policy</button></span>
+                    <span>I agree to the <button type="button" onClick={() => window.open("/terms", "_blank")} className="text-primary font-semibold underline">Terms & Conditions</button> and <button type="button" onClick={() => window.open("/privacy", "_blank")} className="text-primary font-semibold underline">Privacy Policy</button></span>
                   </label>
                 )}
 
-                <button type="submit" className="w-full bg-gradient-to-r from-primary to-gold-dark text-primary-foreground py-3 rounded-lg font-bold text-sm mt-2 hover:shadow-lg transition-all">
-                  {mode === "login" ? "Sign In" : mode === "signup" ? "Create Account" : "Send Reset Link"}
+                <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-primary to-gold-dark text-primary-foreground py-3 rounded-lg font-bold text-sm mt-2 hover:shadow-lg transition-all disabled:opacity-50">
+                  {loading ? "Please wait..." : mode === "login" ? "Sign In" : mode === "signup" ? "Create Account" : "Send Reset Link"}
                 </button>
               </form>
 

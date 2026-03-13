@@ -1,14 +1,23 @@
 import { useState } from "react";
 import { useAppContext } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import RateManagement from "@/components/RateManagement";
+import LankaPayModal from "@/components/LankaPayModal";
 
 const DashboardPage = () => {
   const { data, currentUser, showToast } = useAppContext();
+  const { user, profile } = useAuth();
   const [activeSection, setActiveSection] = useState("overview");
-  const user = data.users[currentUser];
+  const mockUser = data.users[currentUser];
+  const displayName = profile?.full_name || mockUser.name;
+  const displayEmail = profile?.email || mockUser.email;
 
-  const roleColorMap: Record<string, string> = { customer: "bg-emerald", owner: "bg-sapphire", broker: "bg-primary", admin: "bg-ruby" };
+  const roleColorMap: Record<string, string> = { customer: "bg-emerald", owner: "bg-sapphire", broker: "bg-primary", admin: "bg-ruby", stay_provider: "bg-teal", event_organizer: "bg-indigo", sme: "bg-primary" };
   const roleColor = roleColorMap[currentUser] || "bg-primary";
+
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentCtx, setPaymentCtx] = useState({ amount: 0, description: "", onSuccess: () => {} });
 
   const navItems: Record<string, { id: string; label: string; icon: string }[]> = {
     customer: [
@@ -21,23 +30,28 @@ const DashboardPage = () => {
       { id: "overview", label: "Overview", icon: "📊" },
       { id: "listings", label: "My Listings", icon: "🏠" },
       { id: "analytics", label: "Analytics", icon: "📈" },
+      { id: "rates", label: "Rate Management", icon: "⚙️" },
       { id: "pricing", label: "Fees & Pricing", icon: "💳" },
       { id: "promos", label: "Promo Codes", icon: "🎁" },
       { id: "revenue", label: "Revenue", icon: "💰" },
+      { id: "terms", label: "Terms & Conditions", icon: "📄" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
     broker: [
       { id: "overview", label: "Overview", icon: "📊" },
       { id: "listings", label: "Listings (38/65)", icon: "🏢" },
       { id: "analytics", label: "Analytics", icon: "📈" },
+      { id: "rates", label: "Rate Management", icon: "⚙️" },
       { id: "pricing", label: "Fees & Pricing", icon: "💳" },
       { id: "membership", label: "Membership", icon: "👑" },
       { id: "revenue", label: "Revenue", icon: "💰" },
+      { id: "terms", label: "Terms & Conditions", icon: "📄" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
     admin: [
       { id: "overview", label: "Dashboard", icon: "📊" },
       { id: "analytics", label: "Analytics", icon: "📈" },
+      { id: "rates", label: "Platform Rates", icon: "⚙️" },
       { id: "users", label: "Users", icon: "👥" },
       { id: "all_listings", label: "All Listings", icon: "🏘️" },
       { id: "transactions", label: "Transactions", icon: "💳" },
@@ -47,9 +61,9 @@ const DashboardPage = () => {
   };
 
   const mockBookings = [
-    { id: "B001", type: "stay", item: "Shangri-La Colombo", dates: "Feb 14-18, 2024", amount: 180000, status: "completed" },
-    { id: "B002", type: "vehicle", item: "Toyota Prius – 3 days", dates: "Jan 28-31, 2024", amount: 19500, status: "completed" },
-    { id: "B003", type: "event", item: "Bathiya & Santhush – 2 tickets", dates: "Mar 22, 2024", amount: 5000, status: "upcoming" },
+    { id: "B001", type: "stay", item: "Shangri-La Colombo", dates: "Feb 14-18, 2024", amount: 180000, status: "completed", checkIn: "2:00 PM", checkOut: "11:00 AM" },
+    { id: "B002", type: "vehicle", item: "Toyota Prius – 3 days", dates: "Jan 28-31, 2024", amount: 19500, status: "completed", pickupTime: "9:00 AM", returnTime: "9:00 AM" },
+    { id: "B003", type: "event", item: "Bathiya & Santhush – 2 tickets", dates: "Mar 22, 2024", amount: 5000, status: "upcoming", gateTime: "6:00 PM" },
   ];
 
   const typeIcons: Record<string, string> = { stay: "🏨", vehicle: "🚗", event: "🎫", property: "🏠" };
@@ -62,12 +76,14 @@ const DashboardPage = () => {
           <div className={`w-12 h-12 rounded-full ${roleColor} flex items-center justify-center text-xl mb-2.5`}>
             {currentUser === "admin" ? "👑" : currentUser === "broker" ? "🏢" : currentUser === "owner" ? "🏠" : "👤"}
           </div>
-          <div className="font-bold text-sm">{user.name}</div>
-          <div className="text-xs text-muted-foreground">{user.email}</div>
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold mt-1.5 ${roleColor}/10 capitalize`}>{currentUser}{user.verified ? " ✓" : ""}</span>
+          <div className="font-bold text-sm">{displayName}</div>
+          <div className="text-xs text-muted-foreground">{displayEmail}</div>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold mt-1.5 ${roleColor}/10 capitalize`}>
+            {currentUser}{user ? " ✓" : ""}
+          </span>
         </div>
         <nav className="flex flex-col gap-0.5">
-          {(navItems[currentUser] || []).map(item => (
+          {(navItems[currentUser] || navItems.customer).map(item => (
             <button key={item.id} onClick={() => setActiveSection(item.id)}
               className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-sm font-medium text-left w-full transition-all ${
                 activeSection === item.id ? "bg-primary/10 text-gold-dark font-semibold" : "text-muted-foreground hover:bg-background"
@@ -78,7 +94,7 @@ const DashboardPage = () => {
 
       {/* Mobile nav */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex overflow-x-auto z-50 px-2 py-1">
-        {(navItems[currentUser] || []).map(item => (
+        {(navItems[currentUser] || navItems.customer).map(item => (
           <button key={item.id} onClick={() => setActiveSection(item.id)}
             className={`flex-1 min-w-[60px] flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium ${
               activeSection === item.id ? "text-primary" : "text-muted-foreground"
@@ -90,12 +106,12 @@ const DashboardPage = () => {
       <div className="flex-1 p-6 md:p-8 pb-20 md:pb-8">
         {activeSection === "overview" && (
           <div>
-            <h2 className="text-2xl mb-6">Welcome, {user.name} 👋</h2>
+            <h2 className="text-2xl mb-6">Welcome, {displayName} 👋</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               {currentUser === "customer" ? (
                 <>
-                  <StatCard icon="📅" label="Total Bookings" value={String(user.bookings || 0)} color="text-sapphire" />
-                  <StatCard icon="💰" label="Total Spent" value={`Rs. ${(user.spent || 0).toLocaleString()}`} color="text-primary" />
+                  <StatCard icon="📅" label="Total Bookings" value={String(mockUser.bookings || 0)} color="text-sapphire" />
+                  <StatCard icon="💰" label="Total Spent" value={`Rs. ${(mockUser.spent || 0).toLocaleString()}`} color="text-primary" />
                   <StatCard icon="❤️" label="Saved Properties" value="3" color="text-ruby" />
                   <StatCard icon="🎫" label="Upcoming Events" value="1" color="text-indigo" />
                 </>
@@ -108,8 +124,8 @@ const DashboardPage = () => {
                 </>
               ) : (
                 <>
-                  <StatCard icon="🏠" label="Active Listings" value={String(user.listings || 0)} color="text-sapphire" />
-                  <StatCard icon="💰" label="Revenue" value={`Rs. ${(user.revenue || 0).toLocaleString()}`} color="text-primary" />
+                  <StatCard icon="🏠" label="Active Listings" value={String(mockUser.listings || 0)} color="text-sapphire" />
+                  <StatCard icon="💰" label="Revenue" value={`Rs. ${(mockUser.revenue || 0).toLocaleString()}`} color="text-primary" />
                   <StatCard icon="👁" label="Total Views" value="1,245" color="text-emerald" />
                   <StatCard icon="📩" label="Enquiries" value="23" color="text-ruby" />
                 </>
@@ -147,12 +163,12 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* Analytics section - available for all except customer */}
-        {activeSection === "analytics" && currentUser !== "customer" && (
-          <AnalyticsDashboard />
-        )}
+        {activeSection === "analytics" && currentUser !== "customer" && <AnalyticsDashboard />}
 
-        {/* Pricing / Fees section - visible only in dashboard for owner/broker */}
+        {/* Rate Management - for owner/broker/admin */}
+        {activeSection === "rates" && currentUser !== "customer" && <RateManagement />}
+
+        {/* Pricing / Fees section */}
         {activeSection === "pricing" && (currentUser === "owner" || currentUser === "broker") && (
           <div>
             <h2 className="text-2xl mb-2">Fees & Pricing</h2>
@@ -179,6 +195,39 @@ const DashboardPage = () => {
           </div>
         )}
 
+        {/* Terms section for owner/broker */}
+        {activeSection === "terms" && (currentUser === "owner" || currentUser === "broker") && (
+          <div className="max-w-3xl">
+            <h2 className="text-2xl mb-2">Terms & Conditions</h2>
+            <p className="text-muted-foreground mb-6">Applicable terms for your account type.</p>
+            <div className="bg-card rounded-xl p-6 border border-border space-y-4 text-sm text-muted-foreground leading-relaxed">
+              {currentUser === "owner" ? (
+                <>
+                  <h3 className="text-foreground font-bold text-base">Property Owner Terms</h3>
+                  <p><strong className="text-foreground">1. Listing Fee:</strong> Rs. 1,000 flat fee per property listing, non-refundable.</p>
+                  <p><strong className="text-foreground">2. Sale Commission:</strong> 2.0% of final sale price, payable upon completed transaction.</p>
+                  <p><strong className="text-foreground">3. Buyer Discount:</strong> 0.5% cashback to buyer on promo code redemption. This applies only to owner-listed properties.</p>
+                  <p><strong className="text-foreground">4. Wanted Ads:</strong> Rs. 8,500 flat fee, valid for 30 days from posting date.</p>
+                  <p><strong className="text-foreground">5. Verification:</strong> Owners must provide valid NIC and property deed documentation.</p>
+                  <p><strong className="text-foreground">6. Stays Commission:</strong> 8.5% flat commission on booking total (excluding government taxes).</p>
+                  <p><strong className="text-foreground">7. Payment:</strong> All fees processed via LankaPay. Transaction charges borne by client.</p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-foreground font-bold text-base">Broker Membership Terms</h3>
+                  <p><strong className="text-foreground">1. Membership Fee:</strong> Rs. 23,000/month for up to 65 property listings.</p>
+                  <p><strong className="text-foreground">2. No Sale Commission:</strong> Brokers are exempt from sale commission on properties sold through the platform.</p>
+                  <p><strong className="text-foreground">3. Buyer Discount:</strong> NOT applicable on broker-listed properties. Only owner-listed properties qualify for buyer cashback.</p>
+                  <p><strong className="text-foreground">4. Wanted Ads:</strong> Rs. 8,500 flat fee, valid for 30 days from posting date.</p>
+                  <p><strong className="text-foreground">5. Listing Limit:</strong> Maximum 65 active listings per billing period. Additional listings require upgrade.</p>
+                  <p><strong className="text-foreground">6. Owner Consent:</strong> All broker listings must have documented owner consent.</p>
+                  <p><strong className="text-foreground">7. Payment:</strong> All fees processed via LankaPay. Transaction charges borne by client.</p>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
         {activeSection === "bookings" && (
           <div>
             <h2 className="text-2xl mb-6">My Bookings</h2>
@@ -186,7 +235,15 @@ const DashboardPage = () => {
               {mockBookings.map(b => (
                 <div key={b.id} className="bg-card rounded-xl p-4 border border-border flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-background flex items-center justify-center text-2xl flex-shrink-0">{typeIcons[b.type]}</div>
-                  <div className="flex-1"><div className="font-bold text-sm">{b.item}</div><div className="text-[13px] text-muted-foreground">📅 {b.dates}</div></div>
+                  <div className="flex-1">
+                    <div className="font-bold text-sm">{b.item}</div>
+                    <div className="text-[13px] text-muted-foreground">📅 {b.dates}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
+                      {b.type === "stay" && `🕐 Check-in: ${b.checkIn} | Check-out: ${b.checkOut}`}
+                      {b.type === "vehicle" && `🕐 Pickup: ${b.pickupTime} | Return: ${b.returnTime}`}
+                      {b.type === "event" && `🚪 Gate: ${b.gateTime}`}
+                    </div>
+                  </div>
                   <div className="text-right"><div className="font-bold">Rs. {b.amount.toLocaleString()}</div><span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${b.status === "completed" ? "bg-emerald/10 text-emerald" : "bg-sapphire/10 text-sapphire"}`}>{b.status}</span></div>
                 </div>
               ))}
@@ -308,6 +365,10 @@ const DashboardPage = () => {
               <div className="h-2.5 bg-pearl-dark rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-emerald to-primary rounded-full" style={{ width: "58%" }} /></div>
               <p className="text-[13px] text-muted-foreground mt-2.5">27 listings remaining this month.</p>
             </div>
+            <button onClick={() => { setPaymentCtx({ amount: 23000, description: "Broker Monthly Membership Renewal", onSuccess: () => { showToast("Membership renewed!", "success"); setShowPayment(false); } }); setShowPayment(true); }}
+              className="mt-4 bg-primary hover:bg-gold-light text-primary-foreground px-6 py-2.5 rounded-lg font-bold text-sm transition-all">
+              💳 Renew Membership – Rs. 23,000
+            </button>
           </div>
         )}
 
@@ -316,12 +377,12 @@ const DashboardPage = () => {
             <h2 className="text-2xl mb-6">My Profile</h2>
             <div className="bg-card rounded-xl p-6 border border-border">
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div><label className="block text-xs font-semibold mb-1">Full Name</label><input defaultValue={user.name} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
-                <div><label className="block text-xs font-semibold mb-1">Email</label><input defaultValue={user.email} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
+                <div><label className="block text-xs font-semibold mb-1">Full Name</label><input defaultValue={displayName} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
+                <div><label className="block text-xs font-semibold mb-1">Email</label><input defaultValue={displayEmail} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
               </div>
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div><label className="block text-xs font-semibold mb-1">Phone</label><input defaultValue={user.phone || ""} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
-                <div><label className="block text-xs font-semibold mb-1">Joined</label><input defaultValue={user.joined || ""} disabled className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background" /></div>
+                <div><label className="block text-xs font-semibold mb-1">Phone</label><input defaultValue={profile?.phone || mockUser.phone || ""} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
+                <div><label className="block text-xs font-semibold mb-1">Account Type</label><input defaultValue={currentUser} disabled className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background capitalize" /></div>
               </div>
               <button onClick={() => showToast("Profile updated!", "success")} className="bg-primary hover:bg-gold-light text-primary-foreground px-6 py-2.5 rounded-lg font-bold text-sm transition-all">Save Changes</button>
             </div>
@@ -360,7 +421,7 @@ const DashboardPage = () => {
           <div>
             <h2 className="text-2xl mb-6">Revenue</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <StatCard icon="💰" label="Total Revenue" value={`Rs. ${(user.revenue || 0).toLocaleString()}`} color="text-primary" />
+              <StatCard icon="💰" label="Total Revenue" value={`Rs. ${(mockUser.revenue || 0).toLocaleString()}`} color="text-primary" />
               <StatCard icon="📈" label="This Month" value="Rs. 125,000" color="text-emerald" />
               <StatCard icon="📊" label="Pending" value="Rs. 45,000" color="text-ruby" />
             </div>
@@ -419,6 +480,8 @@ const DashboardPage = () => {
           </div>
         )}
       </div>
+
+      <LankaPayModal open={showPayment} onClose={() => setShowPayment(false)} amount={paymentCtx.amount} description={paymentCtx.description} onSuccess={paymentCtx.onSuccess} />
     </div>
   );
 };
