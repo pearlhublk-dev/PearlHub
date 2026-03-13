@@ -1,14 +1,19 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 import LeafletMap from "@/components/LeafletMap";
 import { Stay } from "@/types/pearl-hub";
 
 const StaysPage = () => {
   const { data, showToast } = useAppContext();
-  const [filter, setFilter] = useState({ type: "all", maxPrice: "", location: "", minRating: "0" });
+  const [filter, setFilter] = useState({ type: "all", maxPrice: "", location: "", minRating: "0", amenity: "" });
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [selectedStay, setSelectedStay] = useState<Stay | null>(null);
-  const [checkIn, setCheckIn] = useState(""); const [checkOut, setCheckOut] = useState(""); const [roomType, setRoomType] = useState("standard");
+  const [checkIn, setCheckIn] = useState(""); 
+  const [checkOut, setCheckOut] = useState(""); 
+  const [roomType, setRoomType] = useState("standard");
+  const [guests, setGuests] = useState(2);
+  const [specialRequests, setSpecialRequests] = useState("");
 
   const stayTypes = [{ id: "all", label: "All" }, { id: "star_hotel", label: "Star Hotels" }, { id: "villa", label: "Villas" }, { id: "guest_house", label: "Guest Houses" }, { id: "hostel", label: "Hostels" }, { id: "lodge", label: "Lodges" }];
 
@@ -17,13 +22,33 @@ const StaysPage = () => {
     if (filter.maxPrice && s.pricePerNight > parseInt(filter.maxPrice)) return false;
     if (filter.location && !s.location.toLowerCase().includes(filter.location.toLowerCase())) return false;
     if (s.rating < parseFloat(filter.minRating)) return false;
+    if (filter.amenity && !s.amenities.some(a => a.toLowerCase().includes(filter.amenity.toLowerCase()))) return false;
     return true;
   });
 
   const mapMarkers = filtered.map(s => ({ lat: s.lat, lng: s.lng, title: s.name, location: s.location, price: s.pricePerNight, emoji: s.image, type: "stay" as const, rating: s.rating }));
 
-  const roomTypes: Record<string, { label: string; mult: number }> = { standard: { label: "Standard", mult: 1 }, deluxe: { label: "Deluxe", mult: 1.4 }, suite: { label: "Suite", mult: 2.2 }, penthouse: { label: "Penthouse", mult: 3.5 } };
+  const roomTypes: Record<string, { label: string; mult: number; desc: string }> = { 
+    standard: { label: "Standard", mult: 1, desc: "Comfortable room with essential amenities" }, 
+    deluxe: { label: "Deluxe", mult: 1.4, desc: "Spacious room with premium furnishings" }, 
+    suite: { label: "Suite", mult: 2.2, desc: "Separate living area with luxury touches" }, 
+    penthouse: { label: "Penthouse", mult: 3.5, desc: "Top floor with panoramic views" } 
+  };
   const nights = checkIn && checkOut ? Math.max(1, Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000)) : 0;
+  const roomRate = selectedStay ? selectedStay.pricePerNight * roomTypes[roomType].mult : 0;
+  const subtotal = roomRate * nights;
+  const taxRate = 0.1;
+  const serviceCharge = subtotal * 0.05;
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax + serviceCharge;
+
+  const priceRanges = [
+    { label: "Any Price", value: "" },
+    { label: "Under Rs. 5,000", value: "5000" },
+    { label: "Under Rs. 15,000", value: "15000" },
+    { label: "Under Rs. 30,000", value: "30000" },
+    { label: "Under Rs. 50,000", value: "50000" },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,7 +67,13 @@ const StaysPage = () => {
               className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium border transition-all ${filter.type === t.id ? "bg-sapphire text-pearl border-sapphire" : "bg-transparent text-muted-foreground border-input"}`}>{t.label}</button>
           ))}
           <div className="ml-auto flex gap-2">
-            <input value={filter.location} onChange={e => setFilter({...filter, location: e.target.value})} placeholder="📍 Location" className="rounded-md border border-input px-3 py-1.5 text-sm w-40" />
+            <input value={filter.location} onChange={e => setFilter({...filter, location: e.target.value})} placeholder="📍 Location" className="rounded-md border border-input px-3 py-1.5 text-sm w-32" />
+            <select value={filter.maxPrice} onChange={e => setFilter({...filter, maxPrice: e.target.value})} className="rounded-md border border-input px-2 py-1.5 text-sm bg-card">
+              {priceRanges.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+            </select>
+            <select value={filter.minRating} onChange={e => setFilter({...filter, minRating: e.target.value})} className="rounded-md border border-input px-2 py-1.5 text-sm bg-card">
+              <option value="0">Any Rating</option><option value="4">4+ Stars</option><option value="4.5">4.5+ Stars</option><option value="4.8">4.8+ Stars</option>
+            </select>
             <button onClick={() => setViewMode(viewMode === "grid" ? "map" : "grid")}
               className={`px-3.5 py-1.5 rounded-md text-xs font-semibold border transition-all ${viewMode === "map" ? "bg-sapphire text-pearl border-sapphire" : "bg-transparent text-muted-foreground border-input"}`}>
               {viewMode === "map" ? "⊞ Grid" : "🗺️ Map"}
@@ -56,8 +87,10 @@ const StaysPage = () => {
           <LeafletMap markers={mapMarkers} center={[7.8731, 80.7718]} zoom={8} height="500px" />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map(stay => (
-              <div key={stay.id} onClick={() => setSelectedStay(stay)} className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
+            {filtered.map((stay, i) => (
+              <motion.div key={stay.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                onClick={() => { setSelectedStay(stay); setRoomType("standard"); setGuests(2); setSpecialRequests(""); }}
+                className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
                 <div className="h-40 bg-gradient-to-br from-sapphire/10 to-sapphire/[0.03] flex items-center justify-center text-6xl relative">
                   {stay.image}
                   {stay.approved && <span className="absolute top-2.5 right-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald/10 text-emerald">✓ STB Approved</span>}
@@ -79,60 +112,78 @@ const StaysPage = () => {
                     <div className="flex items-center gap-1"><span className="text-primary">★</span><span className="font-bold text-sm">{stay.rating}</span></div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
       </div>
 
       {/* Detail/Booking Modal */}
-      {selectedStay && (
-        <div className="fixed inset-0 bg-obsidian/75 z-[1000] flex items-center justify-center p-5 fade-in" onClick={() => setSelectedStay(null)}>
-          <div className="bg-card rounded-2xl max-w-[860px] w-full max-h-[90vh] overflow-y-auto fade-up" onClick={e => e.stopPropagation()}>
-            <div className="bg-gradient-to-br from-sapphire to-sapphire/70 px-7 py-6 flex justify-between">
-              <div>
-                <h2 className="text-pearl text-xl mb-1">{selectedStay.image} {selectedStay.name}</h2>
-                <p className="text-pearl/70 text-sm">📍 {selectedStay.location} • ★ {selectedStay.rating}</p>
-              </div>
-              <button onClick={() => setSelectedStay(null)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer">✕</button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_300px]">
-              <div className="p-7 border-r border-border">
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4">{selectedStay.description}</p>
-                <div className="flex gap-2 flex-wrap mb-5">{selectedStay.amenities.map(a => <span key={a} className="inline-block px-2 py-0.5 bg-pearl-dark rounded text-[11px] font-medium text-muted-foreground">{a}</span>)}</div>
-                <h4 className="mb-3 text-sm">Room Types</h4>
-                <div className="grid grid-cols-2 gap-2 mb-5">
-                  {Object.entries(roomTypes).map(([key, room]) => (
-                    <div key={key} onClick={() => setRoomType(key)}
-                      className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${roomType === key ? "border-sapphire bg-sapphire/5" : "border-border"}`}>
-                      <div className="font-semibold text-[13px]">{room.label}</div>
-                      <div className="text-[13px] text-sapphire font-bold">Rs. {(selectedStay.pricePerNight * room.mult).toLocaleString()}/night</div>
-                    </div>
-                  ))}
+      <AnimatePresence>
+        {selectedStay && (
+          <div className="fixed inset-0 bg-obsidian/75 z-[1000] flex items-center justify-center p-5" onClick={() => setSelectedStay(null)}>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-card rounded-2xl max-w-[900px] w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="bg-gradient-to-br from-sapphire to-sapphire/70 px-7 py-6 flex justify-between">
+                <div>
+                  <h2 className="text-pearl text-xl mb-1">{selectedStay.image} {selectedStay.name}</h2>
+                  <p className="text-pearl/70 text-sm">📍 {selectedStay.location} • ★ {selectedStay.rating} • {selectedStay.rooms} rooms</p>
                 </div>
-                <LeafletMap markers={[{ lat: selectedStay.lat, lng: selectedStay.lng, title: selectedStay.name, location: selectedStay.location, price: selectedStay.pricePerNight, emoji: selectedStay.image, type: "stay" }]} center={[selectedStay.lat, selectedStay.lng]} zoom={14} height="200px" />
+                <button onClick={() => setSelectedStay(null)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer">✕</button>
               </div>
-              <div className="p-6">
-                <h4 className="mb-4 text-sm">Book Your Stay</h4>
-                <div className="mb-3"><label className="block text-xs font-semibold mb-1">Check-in</label><input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} min={new Date().toISOString().split("T")[0]} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
-                <div className="mb-3"><label className="block text-xs font-semibold mb-1">Check-out</label><input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} min={checkIn} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
-                {nights > 0 && (
-                  <div className="bg-background rounded-lg p-4 mb-4">
-                    <div className="text-[13px] text-muted-foreground mb-2">Price Breakdown</div>
-                    <div className="flex justify-between text-[13px] mb-1.5"><span>Rs. {(selectedStay.pricePerNight * roomTypes[roomType].mult).toLocaleString()} × {nights} nights</span><span>Rs. {(selectedStay.pricePerNight * roomTypes[roomType].mult * nights).toLocaleString()}</span></div>
-                    <div className="flex justify-between text-xs text-muted-foreground mb-1.5"><span>Taxes (10%)</span><span>Rs. {Math.round(selectedStay.pricePerNight * roomTypes[roomType].mult * nights * 0.1).toLocaleString()}</span></div>
-                    <div className="h-px bg-border my-2" />
-                    <div className="flex justify-between font-bold text-base"><span>Total</span><span className="text-sapphire">Rs. {Math.round(selectedStay.pricePerNight * roomTypes[roomType].mult * nights * 1.1).toLocaleString()}</span></div>
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_320px]">
+                <div className="p-7 border-r border-border">
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">{selectedStay.description}</p>
+                  <div className="flex gap-2 flex-wrap mb-5">{selectedStay.amenities.map(a => <span key={a} className="inline-block px-2 py-0.5 bg-pearl-dark rounded text-[11px] font-medium text-muted-foreground">{a}</span>)}</div>
+                  
+                  <h4 className="mb-3 text-sm font-bold">Room Types</h4>
+                  <div className="grid grid-cols-2 gap-2 mb-5">
+                    {Object.entries(roomTypes).map(([key, room]) => (
+                      <div key={key} onClick={() => setRoomType(key)}
+                        className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${roomType === key ? "border-sapphire bg-sapphire/5" : "border-border"}`}>
+                        <div className="font-semibold text-[13px]">{room.label}</div>
+                        <div className="text-[11px] text-muted-foreground mb-1">{room.desc}</div>
+                        <div className="text-[13px] text-sapphire font-bold">Rs. {(selectedStay.pricePerNight * room.mult).toLocaleString()}/night</div>
+                      </div>
+                    ))}
                   </div>
-                )}
-                <button onClick={() => { if (!checkIn || !checkOut) { showToast("Please select dates.", "error"); return; } showToast("Booking confirmed!", "success"); setSelectedStay(null); }}
-                  className="w-full bg-sapphire hover:bg-sapphire-light text-pearl py-3 rounded-lg font-bold transition-all text-center">🏨 Confirm Booking</button>
-                <p className="text-[11px] text-muted-foreground text-center mt-2">Free cancellation up to 48 hours before check-in</p>
+                  <LeafletMap markers={[{ lat: selectedStay.lat, lng: selectedStay.lng, title: selectedStay.name, location: selectedStay.location, price: selectedStay.pricePerNight, emoji: selectedStay.image, type: "stay" }]} center={[selectedStay.lat, selectedStay.lng]} zoom={14} height="200px" />
+                </div>
+                <div className="p-6">
+                  <h4 className="mb-4 text-sm font-bold">Book Your Stay</h4>
+                  <div className="mb-3"><label className="block text-xs font-semibold mb-1">Check-in</label><input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} min={new Date().toISOString().split("T")[0]} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
+                  <div className="mb-3"><label className="block text-xs font-semibold mb-1">Check-out</label><input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} min={checkIn} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
+                  <div className="mb-3">
+                    <label className="block text-xs font-semibold mb-1">Guests</label>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => setGuests(Math.max(1, guests - 1))} className="w-8 h-8 rounded-full border border-input bg-card text-lg">−</button>
+                      <span className="text-lg font-bold w-8 text-center">{guests}</span>
+                      <button onClick={() => setGuests(Math.min(10, guests + 1))} className="w-8 h-8 rounded-full border border-input bg-card text-lg">+</button>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-xs font-semibold mb-1">Special Requests</label>
+                    <textarea value={specialRequests} onChange={e => setSpecialRequests(e.target.value)} rows={2} placeholder="Early check-in, extra pillows…" className="w-full rounded-md border border-input px-3 py-2 text-sm resize-y" />
+                  </div>
+                  {nights > 0 && (
+                    <div className="bg-background rounded-lg p-4 mb-4">
+                      <div className="text-[13px] text-muted-foreground mb-2">Price Breakdown</div>
+                      <div className="flex justify-between text-[13px] mb-1.5"><span>Rs. {roomRate.toLocaleString()} × {nights} nights</span><span>Rs. {subtotal.toLocaleString()}</span></div>
+                      <div className="flex justify-between text-xs text-muted-foreground mb-1"><span>Service Charge (5%)</span><span>Rs. {Math.round(serviceCharge).toLocaleString()}</span></div>
+                      <div className="flex justify-between text-xs text-muted-foreground mb-1.5"><span>Taxes (10%)</span><span>Rs. {Math.round(tax).toLocaleString()}</span></div>
+                      <div className="h-px bg-border my-2" />
+                      <div className="flex justify-between font-bold text-base"><span>Total</span><span className="text-sapphire">Rs. {Math.round(total).toLocaleString()}</span></div>
+                    </div>
+                  )}
+                  <button onClick={() => { if (!checkIn || !checkOut) { showToast("Please select dates.", "error"); return; } showToast("🏨 Booking confirmed! Confirmation sent to your email.", "success"); setSelectedStay(null); }}
+                    className="w-full bg-sapphire hover:bg-sapphire-light text-pearl py-3 rounded-lg font-bold transition-all text-center">🏨 Confirm Booking</button>
+                  <p className="text-[11px] text-muted-foreground text-center mt-2">Free cancellation up to 48 hours before check-in</p>
+                </div>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };

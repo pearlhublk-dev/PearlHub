@@ -15,6 +15,10 @@ import DashboardPage from "@/pages/DashboardPage";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
 import SettingsPage from "@/pages/SettingsPage";
+import AuthPage from "@/pages/AuthPage";
+import SearchResultsPage from "@/pages/SearchResultsPage";
+import SocialPage from "@/pages/SocialPage";
+import TermsPage from "@/pages/TermsPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +36,11 @@ const AppLayout = () => (
       <Route path="/about" element={<AboutPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/search" element={<SearchResultsPage />} />
+      <Route path="/social" element={<SocialPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/privacy" element={<TermsPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
     <Footer />

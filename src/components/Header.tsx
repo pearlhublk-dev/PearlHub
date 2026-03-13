@@ -13,8 +13,9 @@ const Header = () => {
   const navItems = [
     { path: "/property", label: "Property", icon: "🏘️" },
     { path: "/stays", label: "Stays", icon: "🏨" },
-    { path: "/vehicles", label: "Rent Vehicle", icon: "🚗" },
+    { path: "/vehicles", label: "Vehicles", icon: "🚗" },
     { path: "/events", label: "Events", icon: "🎭" },
+    { path: "/social", label: "Social", icon: "🌐" },
   ];
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -87,6 +88,11 @@ const Header = () => {
             <option value="admin">👑 Admin</option>
           </select>
 
+          <button onClick={() => navigate("/auth")}
+            className="bg-white/[0.08] border border-white/15 text-pearl rounded-md px-3 py-[7px] text-[13px] font-medium hover:bg-white/15 transition-all">
+            🔑 Login
+          </button>
+
           <button onClick={() => navigate("/dashboard")}
             className="bg-gradient-to-br from-primary to-gold-dark text-primary-foreground px-4 py-[7px] rounded-md text-[13px] font-bold flex items-center gap-1.5 hover:shadow-lg transition-all">
             📊 Dashboard
@@ -114,9 +120,13 @@ const Header = () => {
                 <option value="broker">🏢 Broker</option>
                 <option value="admin">👑 Admin</option>
               </select>
+              <button onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }}
+                className="bg-white/[0.08] border border-white/15 text-pearl px-3 py-2 rounded-md text-xs">
+                🔑 Login
+              </button>
               <button onClick={() => { navigate("/dashboard"); setMobileMenuOpen(false); }}
                 className="bg-gradient-to-br from-primary to-gold-dark text-primary-foreground px-4 py-2 rounded-md text-xs font-bold">
-                📊 Dashboard
+                📊
               </button>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 import LeafletMap from "@/components/LeafletMap";
 
@@ -39,7 +40,7 @@ const HomePage = () => {
   ];
 
   const handleSearch = () => {
-    navigate(activeCategory === "all" ? "/property" : `/${activeCategory}`);
+    navigate(`/search?q=${encodeURIComponent(searchQuery)}&category=${activeCategory}`);
   };
 
   return (
@@ -49,41 +50,46 @@ const HomePage = () => {
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-primary/[0.04] pointer-events-none" />
         <div className="absolute -bottom-12 -left-12 w-72 h-72 rounded-full bg-emerald/[0.06] pointer-events-none" />
         <div className="container text-center relative">
-          <div className="inline-flex items-center gap-1.5 bg-primary/15 text-gold-dark text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">🇱🇰 Sri Lanka's #1 Marketplace Platform</div>
-          <h1 className="font-display text-pearl font-black leading-tight mb-4" style={{ fontSize: "clamp(36px, 6vw, 64px)" }}>
-            Discover <span className="text-primary">Pearl Hub</span>
-            <br />
-            <span className="italic text-fog" style={{ fontSize: "0.75em" }}>Your Gateway to Sri Lanka</span>
-          </h1>
-          <p className="text-fog text-lg max-w-[600px] mx-auto mb-10 leading-relaxed">
-            Find properties, book stays, rent vehicles, and discover events — all in one trusted platform connecting Sri Lanka.
-          </p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <div className="inline-flex items-center gap-1.5 bg-primary/15 text-gold-dark text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">🇱🇰 Sri Lanka's #1 Marketplace Platform</div>
+            <h1 className="font-display text-pearl font-black leading-tight mb-4" style={{ fontSize: "clamp(36px, 6vw, 64px)" }}>
+              Discover <span className="text-primary">Pearl Hub</span>
+              <br />
+              <span className="italic text-fog" style={{ fontSize: "0.75em" }}>Your Gateway to Sri Lanka</span>
+            </h1>
+            <p className="text-fog text-lg max-w-[600px] mx-auto mb-10 leading-relaxed">
+              Find properties, book stays, rent vehicles, and discover events — all in one trusted platform connecting Sri Lanka.
+            </p>
+          </motion.div>
 
           {/* Search */}
-          <div className="max-w-[700px] mx-auto bg-card rounded-xl p-1.5 pl-5 flex items-center gap-2 shadow-2xl mb-8">
-            <span className="text-xl">🔍</span>
-            <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search properties, stays, vehicles, events…"
-              className="flex-1 border-none outline-none text-base font-body bg-transparent text-foreground" />
-            <button onClick={handleSearch} className="bg-primary hover:bg-gold-light text-primary-foreground px-7 py-3 rounded-lg text-base font-bold transition-all">Search</button>
-          </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <div className="max-w-[700px] mx-auto bg-card rounded-xl p-1.5 pl-5 flex items-center gap-2 shadow-2xl mb-8">
+              <span className="text-xl">🔍</span>
+              <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search properties, stays, vehicles, events…"
+                onKeyDown={e => e.key === "Enter" && handleSearch()}
+                className="flex-1 border-none outline-none text-base font-body bg-transparent text-foreground" />
+              <button onClick={handleSearch} className="bg-primary hover:bg-gold-light text-primary-foreground px-7 py-3 rounded-lg text-base font-bold transition-all">Search</button>
+            </div>
 
-          {/* Category Pills */}
-          <div className="flex justify-center gap-2 flex-wrap mb-12">
-            {categories.map(c => (
-              <button key={c.id} onClick={() => setActiveCategory(c.id)}
-                className={`px-4 py-2 rounded-full text-[13px] font-semibold flex items-center gap-1.5 transition-all border-none cursor-pointer ${
-                  activeCategory === c.id ? "bg-primary text-primary-foreground" : "bg-white/10 text-pearl hover:bg-white/20"
-                }`}>{c.icon} {c.label}</button>
-            ))}
-          </div>
+            {/* Category Pills */}
+            <div className="flex justify-center gap-2 flex-wrap mb-12">
+              {categories.map(c => (
+                <button key={c.id} onClick={() => setActiveCategory(c.id)}
+                  className={`px-4 py-2 rounded-full text-[13px] font-semibold flex items-center gap-1.5 transition-all border-none cursor-pointer ${
+                    activeCategory === c.id ? "bg-primary text-primary-foreground" : "bg-white/10 text-pearl hover:bg-white/20"
+                  }`}>{c.icon} {c.label}</button>
+              ))}
+            </div>
+          </motion.div>
 
           {/* Stats */}
           <div className="flex justify-center gap-8 md:gap-16 flex-wrap">
-            {stats.map(s => (
-              <div key={s.label} className="text-center">
+            {stats.map((s, i) => (
+              <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.1 }} className="text-center">
                 <div className="font-display text-3xl font-bold text-primary">{s.value}</div>
                 <div className="text-[13px] text-fog">{s.label}</div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -97,8 +103,9 @@ const HomePage = () => {
             <p className="text-muted-foreground text-base">Four powerful platforms, one seamless experience</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {categoryCards.map(cat => (
-              <div key={cat.id} onClick={() => navigate(`/${cat.id}`)}
+            {categoryCards.map((cat, i) => (
+              <motion.div key={cat.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                onClick={() => navigate(`/${cat.id}`)}
                 className="cursor-pointer bg-background rounded-2xl p-7 text-center transition-all hover:-translate-y-1 hover:shadow-xl border-2 border-transparent hover:border-primary/30 group">
                 <div className="text-5xl mb-3">{cat.icon}</div>
                 <h3 className={`text-xl mb-1 ${cat.colorClass.split(' ')[0]}`}>{cat.title}</h3>
@@ -106,7 +113,7 @@ const HomePage = () => {
                 <p className="text-[13px] text-muted-foreground leading-relaxed mb-3">{cat.desc}</p>
                 <div className={`font-display text-2xl font-bold ${cat.colorClass.split(' ')[0]}`}>{cat.count}</div>
                 <div className="text-[11px] text-muted-foreground">listings</div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -143,12 +150,12 @@ const HomePage = () => {
               { icon: "💎", title: "Transparent Pricing", desc: "Clear commission structure with no hidden fees. Buyers get cashback on owner sales." },
               { icon: "🗺️", title: "Interactive Maps", desc: "Explore all listings on Leaflet-powered interactive maps with real-time data." },
               { icon: "🎫", title: "QR Ticket System", desc: "Tamper-proof QR-coded tickets for cinema, concerts, and sports events." },
-            ].map(item => (
-              <div key={item.title} className="text-center p-5">
+            ].map((item, i) => (
+              <motion.div key={item.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center p-5">
                 <div className="text-4xl mb-3">{item.icon}</div>
                 <h4 className="text-base mb-1.5">{item.title}</h4>
                 <p className="text-[13px] text-muted-foreground leading-relaxed">{item.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>

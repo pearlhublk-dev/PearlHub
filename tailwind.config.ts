@@ -12,8 +12,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["'Playfair Display'", "Georgia", "serif"],
-        body: ["'DM Sans'", "'Segoe UI'", "sans-serif"],
+        display: ["'Ubuntu'", "sans-serif"],
+        body: ["'Ubuntu Sans'", "'Ubuntu'", "sans-serif"],
         mono: ["'JetBrains Mono'", "monospace"],
       },
       colors: {
@@ -39,6 +39,7 @@ export default {
         mist: "hsl(var(--mist-custom))",
         fog: "hsl(var(--fog))",
         indigo: "hsl(var(--indigo))",
+        teal: "hsl(var(--teal))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
