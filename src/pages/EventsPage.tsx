@@ -47,6 +47,12 @@ const EventsPage = () => {
           <p className="text-pearl/75 mt-1.5">Cinema • Concerts • Sports • QR-Coded Tickets</p>
         </div>
       </div>
+      <TrustBanner stats={[
+        { value: "540+", label: "Events", icon: "🎭" },
+        { value: "QR Coded", label: "Secure Tickets", icon: "🎫" },
+        { value: "4.8★", label: "Avg Rating", icon: "⭐" },
+        { value: "50K+", label: "Tickets Sold", icon: "🎟️" },
+      ]} />
 
       <div className="bg-card border-b border-border py-3">
         <div className="container flex gap-2 flex-wrap">
