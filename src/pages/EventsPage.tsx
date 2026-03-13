@@ -87,6 +87,8 @@ const EventsPage = () => {
                     <span className="font-display text-lg font-bold text-indigo">Rs. {evt.prices.standard.toLocaleString()}</span>
                   </div>
                   <span className="text-xs font-bold px-3 py-1.5 rounded-md text-pearl" style={{ background: "hsl(256 57% 29%)" }}>Book Now</span>
+                  <button onClick={(e) => { e.stopPropagation(); setSelected(evt); setShowInquiry(true); }}
+                    className="text-xs font-bold px-3 py-1.5 rounded-md border border-indigo text-indigo hover:bg-indigo/5">📩</button>
                 </div>
               </div>
             </motion.div>
