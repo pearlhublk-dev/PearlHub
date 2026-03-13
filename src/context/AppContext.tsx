@@ -2,6 +2,16 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import { AppData, UserRole } from "@/types/pearl-hub";
 import { INITIAL_DATA } from "@/data/pearl-hub-data";
 
+interface RecentlyViewed {
+  id: string;
+  title: string;
+  type: "property" | "stay" | "vehicle" | "event";
+  price?: number;
+  image: string;
+  location: string;
+  viewedAt: number;
+}
+
 interface AppContextType {
   data: AppData;
   currentUser: UserRole;
@@ -14,6 +24,8 @@ interface AppContextType {
   notifications: Notification[];
   addNotification: (title: string, message: string) => void;
   markNotificationRead: (id: number) => void;
+  recentlyViewed: RecentlyViewed[];
+  addRecentlyViewed: (item: Omit<RecentlyViewed, "viewedAt">) => void;
 }
 
 interface Notification {
