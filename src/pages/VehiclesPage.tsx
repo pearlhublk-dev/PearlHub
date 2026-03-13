@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 import LeafletMap from "@/components/LeafletMap";
+import LankaPayModal from "@/components/LankaPayModal";
 import { Vehicle } from "@/types/pearl-hub";
 
 const VehiclesPage = () => {
@@ -11,8 +12,9 @@ const VehiclesPage = () => {
   const [filter, setFilter] = useState({ type: "all", driver: "all", location: "" });
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [selected, setSelected] = useState<Vehicle | null>(null);
-  const [form, setForm] = useState({ startDate: "", endDate: "", driver: "no", agreedToTerms: false });
+  const [form, setForm] = useState({ startDate: "", endDate: "", pickupTime: "09:00", returnTime: "09:00", driver: "no", agreedToTerms: false });
   const [showTerms, setShowTerms] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
 
   const vehicleTypes = [{ id: "all", label: "All" }, { id: "car", label: "Cars" }, { id: "van", label: "Vans" }, { id: "jeep", label: "Jeeps" }, { id: "bus", label: "Buses" }, { id: "luxury_coach", label: "Luxury Coach" }];
 
@@ -30,7 +32,6 @@ const VehiclesPage = () => {
   const totalKmIncluded = dailyKmLimit * days;
   const driverRate = 3500;
   const excessKmRate = selected ? Math.round(selected.price * 0.05) : 0;
-
   const baseTotal = selected ? selected.price * days : 0;
   const driverTotal = form.driver === "yes" && selected?.driver !== "included" ? driverRate * days : 0;
   const grandTotal = baseTotal + driverTotal;
@@ -44,14 +45,7 @@ const VehiclesPage = () => {
             <h1 className="text-pearl text-3xl">Rent a Vehicle</h1>
             <p className="text-pearl/75 mt-1.5">Cars • Vans • Jeeps • Buses • Luxury Coaches</p>
           </div>
-          <div className="flex gap-3">
-            <button onClick={() => navigate("/terms")} className="bg-white/10 border border-white/20 text-pearl px-4 py-2 rounded-lg text-xs font-bold">📄 Supplier T&C</button>
-            <div className="bg-white/10 border border-white/20 rounded-lg px-5 py-3.5">
-              <div className="text-[11px] text-pearl/60 uppercase tracking-wider">Listing Fee</div>
-              <div className="text-2xl font-bold text-primary">Rs. 6,500</div>
-              <div className="text-[11px] text-pearl/60">per vehicle / month</div>
-            </div>
-          </div>
+          <button onClick={() => navigate("/terms")} className="bg-white/10 border border-white/20 text-pearl px-4 py-2 rounded-lg text-xs font-bold">📄 Supplier T&C</button>
         </div>
       </div>
 
@@ -80,7 +74,7 @@ const VehiclesPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((v, i) => (
               <motion.div key={v.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                onClick={() => { setSelected(v); setForm({ startDate: "", endDate: "", driver: v.driver === "included" ? "yes" : "no", agreedToTerms: false }); }}
+                onClick={() => { setSelected(v); setForm({ startDate: "", endDate: "", pickupTime: "09:00", returnTime: "09:00", driver: v.driver === "included" ? "yes" : "no", agreedToTerms: false }); }}
                 className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
                 <div className="h-36 bg-gradient-to-br from-ruby/10 to-ruby/[0.03] flex items-center justify-center text-5xl relative">
                   {v.image}
@@ -96,7 +90,7 @@ const VehiclesPage = () => {
                   </div>
                   <div className="flex gap-2 text-[11px] text-muted-foreground mb-3">
                     <span className="bg-background px-2 py-0.5 rounded">📏 {dailyKmLimit}km/day included</span>
-                    <span className="bg-background px-2 py-0.5 rounded">⚡ Extra km charged</span>
+                    <span className="bg-background px-2 py-0.5 rounded">🚀 {v.trips} trips</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <div><span className="font-display text-xl font-bold text-ruby">Rs. {v.price.toLocaleString()}</span><span className="text-xs text-muted-foreground">/{v.priceUnit}</span></div>
@@ -149,13 +143,31 @@ const VehiclesPage = () => {
                   </div>
                 </div>
 
-                {/* Dates */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                {/* Dates & Times */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
                   <div><label className="block text-xs font-semibold mb-1">Pickup Date</label><input type="date" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} min={new Date().toISOString().split("T")[0]} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
                   <div><label className="block text-xs font-semibold mb-1">Return Date</label><input type="date" value={form.endDate} onChange={e => setForm({...form, endDate: e.target.value})} min={form.startDate} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
                 </div>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div>
+                    <label className="block text-xs font-semibold mb-1">Pickup Time</label>
+                    <select value={form.pickupTime} onChange={e => setForm({...form, pickupTime: e.target.value})} className="w-full rounded-md border border-input px-3 py-2 text-sm bg-card">
+                      {["06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"].map(t => (
+                        <option key={t} value={t}>{t.replace(/^(\d+):/, (_, h) => `${parseInt(h) > 12 ? parseInt(h) - 12 : h}:`)}  {parseInt(t) >= 12 ? "PM" : "AM"}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1">Return Time</label>
+                    <select value={form.returnTime} onChange={e => setForm({...form, returnTime: e.target.value})} className="w-full rounded-md border border-input px-3 py-2 text-sm bg-card">
+                      {["06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"].map(t => (
+                        <option key={t} value={t}>{t.replace(/^(\d+):/, (_, h) => `${parseInt(h) > 12 ? parseInt(h) - 12 : h}:`)} {parseInt(t) >= 12 ? "PM" : "AM"}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-                {/* KM Info */}
+                {/* Trip Summary */}
                 {days > 0 && (
                   <div className="bg-background rounded-lg p-4 mb-4">
                     <h4 className="text-sm font-bold mb-3">📊 Trip Summary</h4>
@@ -173,8 +185,8 @@ const VehiclesPage = () => {
                         <div className="text-[11px] text-muted-foreground">Per Extra KM</div>
                       </div>
                     </div>
-
                     <div className="space-y-1.5">
+                      <div className="flex justify-between text-[13px]"><span>Pickup: {form.pickupTime} | Return: {form.returnTime}</span></div>
                       <div className="flex justify-between text-[13px]"><span>Base Rate: Rs. {selected.price.toLocaleString()} × {days} days</span><span>Rs. {baseTotal.toLocaleString()}</span></div>
                       {driverTotal > 0 && <div className="flex justify-between text-[13px]"><span>Driver: Rs. {driverRate.toLocaleString()} × {days} days</span><span>Rs. {driverTotal.toLocaleString()}</span></div>}
                       <div className="flex justify-between text-xs text-muted-foreground"><span>Daily KM allowance: {dailyKmLimit} km/day ({totalKmIncluded} km total)</span></div>
@@ -195,8 +207,8 @@ const VehiclesPage = () => {
                 <button onClick={() => {
                   if (!form.startDate || !form.endDate) { showToast("Please select dates.", "error"); return; }
                   if (!form.agreedToTerms) { showToast("Please agree to the Terms & Conditions.", "error"); return; }
-                  showToast("🚗 Vehicle booked successfully! Confirmation sent to your email.", "success"); setSelected(null);
-                }} className="w-full bg-ruby hover:bg-ruby-light text-pearl py-3 rounded-lg font-bold transition-all">🚗 Confirm Booking — Rs. {grandTotal.toLocaleString()}</button>
+                  setShowPayment(true);
+                }} className="w-full bg-ruby hover:bg-ruby-light text-pearl py-3 rounded-lg font-bold transition-all">💳 Book & Pay Rs. {grandTotal.toLocaleString()} via LankaPay</button>
               </div>
             </motion.div>
           </div>
@@ -220,12 +232,21 @@ const VehiclesPage = () => {
               <p><strong className="text-foreground">6. Cancellation:</strong> Full refund 48hrs+ before pickup. 50% within 24-48hrs. No refund under 24hrs.</p>
               <p><strong className="text-foreground">7. Late Return:</strong> Charged at 150% of the daily rate for each additional day.</p>
               <p><strong className="text-foreground">8. Damage:</strong> Customer liable for damage beyond normal wear. Security deposit covers minor incidents.</p>
+              <p><strong className="text-foreground">9. Pickup/Return Times:</strong> Late pickups do not extend the rental period. Early returns are not refunded.</p>
               <button onClick={() => { setShowTerms(false); setForm({...form, agreedToTerms: true}); }}
                 className="w-full bg-ruby text-pearl py-2.5 rounded-lg font-bold mt-3">I Agree to These Terms</button>
             </div>
           </div>
         </div>
       )}
+
+      <LankaPayModal
+        open={showPayment}
+        onClose={() => setShowPayment(false)}
+        amount={grandTotal}
+        description={`Vehicle Rental: ${selected?.make} ${selected?.model} – ${days} days`}
+        onSuccess={() => { showToast("🚗 Vehicle booked successfully! Confirmation sent to your email.", "success"); setSelected(null); setShowPayment(false); }}
+      />
     </div>
   );
 };

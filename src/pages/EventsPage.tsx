@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
+import LankaPayModal from "@/components/LankaPayModal";
 import { PearlEvent } from "@/types/pearl-hub";
 
 const EventsPage = () => {
@@ -12,6 +13,8 @@ const EventsPage = () => {
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
   const [step, setStep] = useState(1);
   const [seatConfig, setSeatConfig] = useState({ vipRows: 2, premiumRows: 4 });
+  const [showPayment, setShowPayment] = useState(false);
+  const [gateTime, setGateTime] = useState("18:00");
 
   const eventCategories = [{ id: "all", label: "All Events" }, { id: "cinema", label: "🎬 Cinema" }, { id: "concert", label: "🎵 Concerts" }, { id: "sports", label: "🏏 Sports" }];
 
@@ -58,7 +61,7 @@ const EventsPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((evt, i) => (
             <motion.div key={evt.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              onClick={() => { setSelected(evt); setStep(1); setSelectedSeats([]); setQuantity(1); setTicketType("standard"); setSeatConfig({ vipRows: Math.max(1, Math.floor(evt.seats.rows * 0.1)), premiumRows: Math.max(1, Math.floor(evt.seats.rows * 0.2)) }); }}
+              onClick={() => { setSelected(evt); setStep(1); setSelectedSeats([]); setQuantity(1); setTicketType("standard"); setGateTime("18:00"); setSeatConfig({ vipRows: Math.max(1, Math.floor(evt.seats.rows * 0.1)), premiumRows: Math.max(1, Math.floor(evt.seats.rows * 0.2)) }); }}
               className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer border border-border flex">
               <div className="w-28 flex items-center justify-center text-5xl flex-shrink-0" style={{ background: "linear-gradient(135deg, hsl(256 57% 29% / 0.1), transparent)" }}>{evt.image}</div>
               <div className="p-4 flex-1">
@@ -125,13 +128,22 @@ const EventsPage = () => {
                         </div>
                       ))}
                     </div>
-                    <div className="flex items-center gap-4 mb-5">
+                    <div className="flex items-center gap-4 mb-4">
                       <label className="text-sm font-semibold">Tickets:</label>
                       <div className="flex items-center gap-2">
                         <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 rounded-full border border-input bg-card text-lg cursor-pointer">−</button>
                         <span className="text-lg font-bold w-8 text-center">{quantity}</span>
                         <button onClick={() => setQuantity(Math.min(10, quantity + 1))} className="w-8 h-8 rounded-full border border-input bg-card text-lg cursor-pointer">+</button>
                       </div>
+                    </div>
+                    <div className="mb-5">
+                      <label className="block text-xs font-semibold mb-1">Gate Opening Time</label>
+                      <select value={gateTime} onChange={e => setGateTime(e.target.value)} className="w-full rounded-md border border-input px-3 py-2 text-sm bg-card">
+                        {["16:00","17:00","18:00","19:00","20:00"].map(t => (
+                          <option key={t} value={t}>{t.replace(/^(\d+):/, (_, h) => `${parseInt(h) > 12 ? parseInt(h) - 12 : h}:`)} {parseInt(t) >= 12 ? "PM" : "AM"}</option>
+                        ))}
+                      </select>
+                      <p className="text-[11px] text-muted-foreground mt-1">Arrive at least 30 minutes before the event starts.</p>
                     </div>
                     <button onClick={() => setStep(2)} className="w-full text-pearl py-3 rounded-lg font-bold transition-all text-center" style={{ background: "hsl(256 57% 29%)" }}>Configure Seats →</button>
                   </div>
@@ -143,8 +155,6 @@ const EventsPage = () => {
                       <h4 className="text-sm">Select {quantity} Seat{quantity > 1 ? "s" : ""}</h4>
                       <span className="text-[13px] text-muted-foreground">{selectedSeats.length}/{quantity} selected</span>
                     </div>
-
-                    {/* Seat zone config */}
                     <div className="bg-background rounded-lg p-3 mb-4 flex gap-4 items-center flex-wrap">
                       <span className="text-xs font-semibold">Seat Zones:</span>
                       <div className="flex items-center gap-1.5 text-xs">
@@ -161,8 +171,6 @@ const EventsPage = () => {
                       </div>
                       <span className="text-xs text-muted-foreground">Standard: {selected.seats.rows - seatConfig.vipRows - seatConfig.premiumRows} rows</span>
                     </div>
-
-                    {/* Screen */}
                     <div className="text-center mb-4">
                       <div className="h-2 rounded-full max-w-[300px] mx-auto mb-2" style={{ background: "linear-gradient(to bottom, hsl(256 57% 15%), transparent)" }} />
                       <div className="text-[11px] text-muted-foreground uppercase tracking-wider">SCREEN / STAGE</div>
@@ -208,6 +216,10 @@ const EventsPage = () => {
                         <div className="flex-1"><div className="text-xs text-muted-foreground">Event</div><div className="font-bold">{selected.title}</div></div>
                         <div><div className="text-xs text-muted-foreground">Date & Time</div><div className="font-bold">{selected.date} {selected.time}</div></div>
                       </div>
+                      <div className="flex gap-4 flex-wrap mb-4">
+                        <div><div className="text-xs text-muted-foreground">Gate Opens</div><div className="font-bold">{gateTime.replace(/^(\d+):/, (_, h) => `${parseInt(h) > 12 ? parseInt(h) - 12 : h}:`)} {parseInt(gateTime) >= 12 ? "PM" : "AM"}</div></div>
+                        <div><div className="text-xs text-muted-foreground">Event Starts</div><div className="font-bold">{selected.time}</div></div>
+                      </div>
                       <div className="flex gap-2 flex-wrap mb-4">
                         {selectedSeats.map(s => {
                           const row = Math.floor(s / selected.seats.cols);
@@ -233,8 +245,8 @@ const EventsPage = () => {
                     </div>
                     <div className="flex gap-2.5">
                       <button onClick={() => setStep(2)} className="px-5 py-2.5 rounded-lg font-semibold border border-input bg-card text-sm">← Back</button>
-                      <button onClick={() => { showToast("🎫 Tickets booked! QR codes sent to your email.", "success"); setSelected(null); }}
-                        className="flex-1 text-pearl py-3 rounded-lg font-bold text-sm" style={{ background: "hsl(256 57% 29%)" }}>💳 Pay Rs. {grandTotal.toLocaleString()}</button>
+                      <button onClick={() => setShowPayment(true)}
+                        className="flex-1 text-pearl py-3 rounded-lg font-bold text-sm" style={{ background: "hsl(256 57% 29%)" }}>💳 Pay Rs. {grandTotal.toLocaleString()} via LankaPay</button>
                     </div>
                   </div>
                 )}
@@ -243,6 +255,14 @@ const EventsPage = () => {
           </div>
         )}
       </AnimatePresence>
+
+      <LankaPayModal
+        open={showPayment}
+        onClose={() => setShowPayment(false)}
+        amount={grandTotal}
+        description={`Event Tickets: ${selected?.title} – ${selectedSeats.length} tickets`}
+        onSuccess={() => { showToast("🎫 Tickets booked! QR codes sent to your email.", "success"); setSelected(null); setShowPayment(false); }}
+      />
     </div>
   );
 };

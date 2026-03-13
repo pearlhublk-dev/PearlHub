@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 import LeafletMap from "@/components/LeafletMap";
+import LankaPayModal from "@/components/LankaPayModal";
 import { Stay } from "@/types/pearl-hub";
 
 const StaysPage = () => {
@@ -9,11 +10,14 @@ const StaysPage = () => {
   const [filter, setFilter] = useState({ type: "all", maxPrice: "", location: "", minRating: "0", amenity: "" });
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [selectedStay, setSelectedStay] = useState<Stay | null>(null);
-  const [checkIn, setCheckIn] = useState(""); 
-  const [checkOut, setCheckOut] = useState(""); 
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [checkInTime, setCheckInTime] = useState("14:00");
+  const [checkOutTime, setCheckOutTime] = useState("11:00");
   const [roomType, setRoomType] = useState("standard");
   const [guests, setGuests] = useState(2);
   const [specialRequests, setSpecialRequests] = useState("");
+  const [showPayment, setShowPayment] = useState(false);
 
   const stayTypes = [{ id: "all", label: "All" }, { id: "star_hotel", label: "Star Hotels" }, { id: "villa", label: "Villas" }, { id: "guest_house", label: "Guest Houses" }, { id: "hostel", label: "Hostels" }, { id: "lodge", label: "Lodges" }];
 
@@ -28,11 +32,11 @@ const StaysPage = () => {
 
   const mapMarkers = filtered.map(s => ({ lat: s.lat, lng: s.lng, title: s.name, location: s.location, price: s.pricePerNight, emoji: s.image, type: "stay" as const, rating: s.rating }));
 
-  const roomTypes: Record<string, { label: string; mult: number; desc: string }> = { 
-    standard: { label: "Standard", mult: 1, desc: "Comfortable room with essential amenities" }, 
-    deluxe: { label: "Deluxe", mult: 1.4, desc: "Spacious room with premium furnishings" }, 
-    suite: { label: "Suite", mult: 2.2, desc: "Separate living area with luxury touches" }, 
-    penthouse: { label: "Penthouse", mult: 3.5, desc: "Top floor with panoramic views" } 
+  const roomTypes: Record<string, { label: string; mult: number; desc: string }> = {
+    standard: { label: "Standard", mult: 1, desc: "Comfortable room with essential amenities" },
+    deluxe: { label: "Deluxe", mult: 1.4, desc: "Spacious room with premium furnishings" },
+    suite: { label: "Suite", mult: 2.2, desc: "Separate living area with luxury touches" },
+    penthouse: { label: "Penthouse", mult: 3.5, desc: "Top floor with panoramic views" }
   };
   const nights = checkIn && checkOut ? Math.max(1, Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000)) : 0;
   const roomRate = selectedStay ? selectedStay.pricePerNight * roomTypes[roomType].mult : 0;
@@ -89,7 +93,7 @@ const StaysPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((stay, i) => (
               <motion.div key={stay.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                onClick={() => { setSelectedStay(stay); setRoomType("standard"); setGuests(2); setSpecialRequests(""); }}
+                onClick={() => { setSelectedStay(stay); setRoomType("standard"); setGuests(2); setSpecialRequests(""); setCheckInTime("14:00"); setCheckOutTime("11:00"); }}
                 className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
                 <div className="h-40 bg-gradient-to-br from-sapphire/10 to-sapphire/[0.03] flex items-center justify-center text-6xl relative">
                   {stay.image}
@@ -135,7 +139,7 @@ const StaysPage = () => {
                 <div className="p-7 border-r border-border">
                   <p className="text-sm text-muted-foreground leading-relaxed mb-4">{selectedStay.description}</p>
                   <div className="flex gap-2 flex-wrap mb-5">{selectedStay.amenities.map(a => <span key={a} className="inline-block px-2 py-0.5 bg-pearl-dark rounded text-[11px] font-medium text-muted-foreground">{a}</span>)}</div>
-                  
+
                   <h4 className="mb-3 text-sm font-bold">Room Types</h4>
                   <div className="grid grid-cols-2 gap-2 mb-5">
                     {Object.entries(roomTypes).map(([key, room]) => (
@@ -151,8 +155,26 @@ const StaysPage = () => {
                 </div>
                 <div className="p-6">
                   <h4 className="mb-4 text-sm font-bold">Book Your Stay</h4>
-                  <div className="mb-3"><label className="block text-xs font-semibold mb-1">Check-in</label><input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} min={new Date().toISOString().split("T")[0]} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
-                  <div className="mb-3"><label className="block text-xs font-semibold mb-1">Check-out</label><input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} min={checkIn} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
+                  <div className="mb-3">
+                    <label className="block text-xs font-semibold mb-1">Check-in Date</label>
+                    <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} min={new Date().toISOString().split("T")[0]} className="w-full rounded-md border border-input px-3 py-2 text-sm" />
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-xs font-semibold mb-1">Check-in Time</label>
+                    <select value={checkInTime} onChange={e => setCheckInTime(e.target.value)} className="w-full rounded-md border border-input px-3 py-2 text-sm bg-card">
+                      <option value="12:00">12:00 PM</option><option value="13:00">1:00 PM</option><option value="14:00">2:00 PM (Standard)</option><option value="15:00">3:00 PM</option><option value="16:00">4:00 PM</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-xs font-semibold mb-1">Check-out Date</label>
+                    <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} min={checkIn} className="w-full rounded-md border border-input px-3 py-2 text-sm" />
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-xs font-semibold mb-1">Check-out Time</label>
+                    <select value={checkOutTime} onChange={e => setCheckOutTime(e.target.value)} className="w-full rounded-md border border-input px-3 py-2 text-sm bg-card">
+                      <option value="10:00">10:00 AM</option><option value="11:00">11:00 AM (Standard)</option><option value="12:00">12:00 PM</option>
+                    </select>
+                  </div>
                   <div className="mb-3">
                     <label className="block text-xs font-semibold mb-1">Guests</label>
                     <div className="flex items-center gap-2">
@@ -168,6 +190,7 @@ const StaysPage = () => {
                   {nights > 0 && (
                     <div className="bg-background rounded-lg p-4 mb-4">
                       <div className="text-[13px] text-muted-foreground mb-2">Price Breakdown</div>
+                      <div className="flex justify-between text-[13px] mb-1"><span>Check-in: {checkInTime}</span><span>Check-out: {checkOutTime}</span></div>
                       <div className="flex justify-between text-[13px] mb-1.5"><span>Rs. {roomRate.toLocaleString()} × {nights} nights</span><span>Rs. {subtotal.toLocaleString()}</span></div>
                       <div className="flex justify-between text-xs text-muted-foreground mb-1"><span>Service Charge (5%)</span><span>Rs. {Math.round(serviceCharge).toLocaleString()}</span></div>
                       <div className="flex justify-between text-xs text-muted-foreground mb-1.5"><span>Taxes (10%)</span><span>Rs. {Math.round(tax).toLocaleString()}</span></div>
@@ -175,8 +198,11 @@ const StaysPage = () => {
                       <div className="flex justify-between font-bold text-base"><span>Total</span><span className="text-sapphire">Rs. {Math.round(total).toLocaleString()}</span></div>
                     </div>
                   )}
-                  <button onClick={() => { if (!checkIn || !checkOut) { showToast("Please select dates.", "error"); return; } showToast("🏨 Booking confirmed! Confirmation sent to your email.", "success"); setSelectedStay(null); }}
-                    className="w-full bg-sapphire hover:bg-sapphire-light text-pearl py-3 rounded-lg font-bold transition-all text-center">🏨 Confirm Booking</button>
+                  <button onClick={() => {
+                    if (!checkIn || !checkOut) { showToast("Please select dates.", "error"); return; }
+                    setShowPayment(true);
+                  }}
+                    className="w-full bg-sapphire hover:bg-sapphire-light text-pearl py-3 rounded-lg font-bold transition-all text-center">💳 Book & Pay via LankaPay</button>
                   <p className="text-[11px] text-muted-foreground text-center mt-2">Free cancellation up to 48 hours before check-in</p>
                 </div>
               </div>
@@ -184,6 +210,14 @@ const StaysPage = () => {
           </div>
         )}
       </AnimatePresence>
+
+      <LankaPayModal
+        open={showPayment}
+        onClose={() => setShowPayment(false)}
+        amount={Math.round(total)}
+        description={`Stay at ${selectedStay?.name || ""} – ${nights} nights`}
+        onSuccess={() => { showToast("🏨 Booking confirmed! Confirmation sent to your email.", "success"); setSelectedStay(null); setShowPayment(false); }}
+      />
     </div>
   );
 };

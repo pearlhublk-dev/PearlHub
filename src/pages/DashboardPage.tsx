@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAppContext } from "@/context/AppContext";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 
 const DashboardPage = () => {
   const { data, currentUser, showToast } = useAppContext();
@@ -19,6 +20,8 @@ const DashboardPage = () => {
     owner: [
       { id: "overview", label: "Overview", icon: "📊" },
       { id: "listings", label: "My Listings", icon: "🏠" },
+      { id: "analytics", label: "Analytics", icon: "📈" },
+      { id: "pricing", label: "Fees & Pricing", icon: "💳" },
       { id: "promos", label: "Promo Codes", icon: "🎁" },
       { id: "revenue", label: "Revenue", icon: "💰" },
       { id: "profile", label: "Profile", icon: "👤" },
@@ -26,12 +29,15 @@ const DashboardPage = () => {
     broker: [
       { id: "overview", label: "Overview", icon: "📊" },
       { id: "listings", label: "Listings (38/65)", icon: "🏢" },
+      { id: "analytics", label: "Analytics", icon: "📈" },
+      { id: "pricing", label: "Fees & Pricing", icon: "💳" },
       { id: "membership", label: "Membership", icon: "👑" },
       { id: "revenue", label: "Revenue", icon: "💰" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
     admin: [
       { id: "overview", label: "Dashboard", icon: "📊" },
+      { id: "analytics", label: "Analytics", icon: "📈" },
       { id: "users", label: "Users", icon: "👥" },
       { id: "all_listings", label: "All Listings", icon: "🏘️" },
       { id: "transactions", label: "Transactions", icon: "💳" },
@@ -138,27 +144,38 @@ const DashboardPage = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
 
-            {/* Commission Rate Card */}
-            <div className="bg-card rounded-xl p-5 border border-border">
-              <h3 className="text-base mb-4">Commission & Fee Structure</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {[
-                  { category: "Property (Owner)", rate: "Rs. 1,000 + 2%", icon: "🏠" },
-                  { category: "Property (Broker)", rate: "Rs. 23,000/mo", icon: "🏢" },
-                  { category: "Stays", rate: "8.5% commission", icon: "🏨" },
-                  { category: "Vehicles", rate: "Rs. 6,500/mo", icon: "🚗" },
-                  { category: "Events", rate: "8.5% per ticket", icon: "🎫" },
-                  { category: "Buyer Promo", rate: "0.5% cashback", icon: "🎁" },
-                ].map(item => (
-                  <div key={item.category} className="p-3.5 bg-background rounded-lg border-l-[3px] border-primary">
-                    <div className="text-xl mb-1.5">{item.icon}</div>
-                    <div className="text-xs font-bold mb-0.5">{item.category}</div>
-                    <div className="text-xs text-muted-foreground">{item.rate}</div>
-                  </div>
-                ))}
-              </div>
+        {/* Analytics section - available for all except customer */}
+        {activeSection === "analytics" && currentUser !== "customer" && (
+          <AnalyticsDashboard />
+        )}
+
+        {/* Pricing / Fees section - visible only in dashboard for owner/broker */}
+        {activeSection === "pricing" && (currentUser === "owner" || currentUser === "broker") && (
+          <div>
+            <h2 className="text-2xl mb-2">Fees & Pricing</h2>
+            <p className="text-muted-foreground mb-6">Your applicable rates and commission structure.</p>
+            <div className="flex flex-col gap-3">
+              {currentUser === "owner" ? (
+                <>
+                  <FeeCard icon="🏠" category="Property Listing Fee" rate="Rs. 1,000 flat" basis="Per listing submission" />
+                  <FeeCard icon="💰" category="Sale Commission" rate="2.0%" basis="Of final sale price, via promo code system" />
+                  <FeeCard icon="🎁" category="Buyer Discount" rate="0.5%" basis="Cashback to buyer on promo redemption (owner-listed only, funded by Pearl Hub)" />
+                  <FeeCard icon="🔍" category="Wanted Ad Listing" rate="Rs. 8,500 flat" basis="Per wanted property ad, valid 30 days" />
+                </>
+              ) : (
+                <>
+                  <FeeCard icon="🏢" category="Broker Membership" rate="Rs. 23,000/month" basis="65 listings/month, no sale commission" />
+                  <FeeCard icon="🔍" category="Wanted Ad Listing" rate="Rs. 8,500 flat" basis="Per wanted property ad, valid 30 days" />
+                </>
+              )}
+              <FeeCard icon="🏨" category="Stays Commission" rate="8.5% flat" basis="Per booking total (excl. taxes)" />
+              <FeeCard icon="🚗" category="Vehicle Listing" rate="Rs. 6,500/vehicle" basis="Per vehicle per month" />
+              <FeeCard icon="🎫" category="Event Tickets" rate="8.5%" basis="Per ticket sold" />
             </div>
+            <p className="text-xs text-muted-foreground mt-4">💳 All payments processed via LankaPay. Charges are borne by the client.</p>
           </div>
         )}
 
@@ -190,7 +207,7 @@ const DashboardPage = () => {
                         <td className="p-3"><div className="flex items-center gap-2.5"><span className="text-2xl">{p.image}</span><div><div className="font-semibold">{p.title}</div><div className="text-xs text-muted-foreground">📍 {p.location}</div></div></div></td>
                         <td className="p-3"><span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold capitalize ${p.type === "sale" ? "bg-emerald/10 text-emerald" : p.type === "rent" ? "bg-sapphire/10 text-sapphire" : "bg-primary/15 text-gold-dark"}`}>{p.type}</span></td>
                         <td className="p-3 font-bold">Rs. {p.price.toLocaleString()}</td>
-                        <td className="p-3">{p.views}</td>
+                        <td className="p-3">👁 {p.views}</td>
                         <td className="p-3"><div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald inline-block" /><span>Active</span></div></td>
                       </tr>
                     ))}
@@ -207,7 +224,7 @@ const DashboardPage = () => {
             <div className="bg-card rounded-xl overflow-hidden border border-border">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead><tr className="border-b border-border"><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">ID</th><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">Type</th><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">User</th><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">Amount</th><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">Date</th><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">Status</th></tr></thead>
+                  <thead><tr className="border-b border-border"><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">ID</th><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">Type</th><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">User</th><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">Amount</th><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">Date</th><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">Status</th><th className="p-3 text-left text-xs uppercase text-muted-foreground font-semibold">Gateway</th></tr></thead>
                   <tbody>
                     {data.transactions.map(t => (
                       <tr key={t.id} className="border-b border-border hover:bg-background">
@@ -217,6 +234,7 @@ const DashboardPage = () => {
                         <td className="p-3 font-bold text-emerald">Rs. {t.amount.toLocaleString()}</td>
                         <td className="p-3 text-muted-foreground">{t.date}</td>
                         <td className="p-3"><span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${t.status === "completed" ? "bg-emerald/10 text-emerald" : "bg-primary/15 text-gold-dark"}`}>{t.status}</span></td>
+                        <td className="p-3"><span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-sapphire/10 text-sapphire">LankaPay</span></td>
                       </tr>
                     ))}
                   </tbody>
@@ -257,8 +275,9 @@ const DashboardPage = () => {
               {[
                 { category: "Property – Owner Listing Fee", rate: "Rs. 1,000 flat", basis: "Per listing submission", icon: "🏠" },
                 { category: "Property – Sale Commission", rate: "2.0%", basis: "Final sale price, via promo code system", icon: "💰" },
-                { category: "Buyer Discount (Pearl Hub funded)", rate: "0.5%", basis: "Cashback to buyer on promo redemption", icon: "🎁" },
+                { category: "Buyer Discount (Pearl Hub funded)", rate: "0.5%", basis: "Cashback to buyer on promo redemption (owner-listed only)", icon: "🎁" },
                 { category: "Broker Membership", rate: "Rs. 23,000/month", basis: "65 listings/month, no sale commission", icon: "🏢" },
+                { category: "Wanted Property Listing", rate: "Rs. 8,500 flat", basis: "Per wanted ad, valid 30 days", icon: "🔍" },
                 { category: "Stays – All Types", rate: "8.5% flat", basis: "Per booking total (excl. taxes)", icon: "🏨" },
                 { category: "Vehicle Listing", rate: "Rs. 6,500/vehicle", basis: "Per vehicle per month", icon: "🚗" },
                 { category: "Event Tickets", rate: "8.5%", basis: "Per ticket sold", icon: "🎫" },
@@ -270,6 +289,7 @@ const DashboardPage = () => {
                 </div>
               ))}
             </div>
+            <p className="text-xs text-muted-foreground mt-4">💳 All payments processed via LankaPay. Charges borne by client.</p>
           </div>
         )}
 
@@ -311,12 +331,15 @@ const DashboardPage = () => {
         {(activeSection === "promo" || activeSection === "promos") && (
           <div className="max-w-lg">
             <h2 className="text-2xl mb-2">{currentUser === "customer" ? "Redeem Promo Code" : "Generate Promo Code"}</h2>
-            <p className="text-muted-foreground mb-6">{currentUser === "customer" ? "Enter your promo code from the seller to get 0.5% cashback." : "Generate a promo code for your buyer."}</p>
+            <p className="text-muted-foreground mb-6">{currentUser === "customer" ? "Enter your promo code from the seller to get 0.5% cashback (owner-listed properties only)." : "Generate a promo code for your buyer (0.5% buyer discount, funded by Pearl Hub)."}</p>
             <div className="bg-card rounded-xl p-6 border border-border">
               {currentUser === "customer" ? (
                 <>
                   <div className="mb-4"><label className="block text-xs font-semibold mb-1">Promo Code</label><input placeholder="e.g. PH-P001-AX7K2M" className="w-full rounded-md border border-input px-3 py-2 text-sm font-mono" /></div>
                   <div className="mb-4"><label className="block text-xs font-semibold mb-1">Final Sale Price (Rs.)</label><input type="number" placeholder="e.g. 85000000" className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mb-4 text-xs text-muted-foreground">
+                    ℹ️ Buyer discount (0.5%) is only available for owner-listed properties, not broker listings.
+                  </div>
                   <button onClick={() => showToast("Promo code validated! Cashback will be processed.", "success")} className="w-full bg-primary hover:bg-gold-light text-primary-foreground py-3 rounded-lg font-bold transition-all">🎁 Redeem</button>
                 </>
               ) : (
@@ -324,7 +347,7 @@ const DashboardPage = () => {
                   <div className="bg-background rounded-lg p-5 text-center mb-4">
                     <div className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">Generated Promo Code</div>
                     <div className="font-mono text-2xl font-bold text-primary tracking-widest">PH-P001-{Math.random().toString(36).substr(2, 6).toUpperCase()}</div>
-                    <div className="text-xs text-muted-foreground mt-2">Valid 30 days • Single use</div>
+                    <div className="text-xs text-muted-foreground mt-2">Valid 30 days • Single use • Owner-listed only</div>
                   </div>
                   <button onClick={() => showToast("Promo code copied!", "success")} className="w-full bg-primary hover:bg-gold-light text-primary-foreground py-3 rounded-lg font-bold transition-all">📋 Copy Code</button>
                 </>
@@ -364,6 +387,13 @@ const DashboardPage = () => {
                   <div><label className="block text-xs font-semibold mb-1">Buyer Discount (%)</label><input defaultValue="0.5" type="number" className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
                 </div>
               </div>
+              <div className="bg-card rounded-xl p-5 border border-border">
+                <h3 className="text-base mb-3">Payment Gateway</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="block text-xs font-semibold mb-1">Provider</label><input defaultValue="LankaPay" disabled className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background" /></div>
+                  <div><label className="block text-xs font-semibold mb-1">Fee Bearer</label><input defaultValue="Client" disabled className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background" /></div>
+                </div>
+              </div>
               <button onClick={() => showToast("Settings saved!", "success")} className="bg-primary hover:bg-gold-light text-primary-foreground px-6 py-2.5 rounded-lg font-bold text-sm self-start transition-all">Save Settings</button>
             </div>
           </div>
@@ -376,31 +406,17 @@ const DashboardPage = () => {
               {data.properties.map(p => (
                 <div key={p.id} className="bg-card rounded-xl p-4 border border-border">
                   <div className="flex items-center gap-3 mb-2"><span className="text-2xl">{p.image}</span><div><div className="font-bold text-sm">{p.title}</div><div className="text-xs text-muted-foreground">📍 {p.location}</div></div></div>
-                  <div className="flex justify-between items-center"><span className="font-bold text-emerald text-sm">Rs. {p.price.toLocaleString()}</span><span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald/10 text-emerald">Active</span></div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-emerald text-sm">Rs. {p.price.toLocaleString()}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">👁 {p.views}</span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald/10 text-emerald">Active</span>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-        )}
-
-        {activeSection === "consent_forms" && (
-          <div><h2 className="text-2xl mb-6">Consent Forms</h2><p className="text-muted-foreground">Download and upload owner consent forms for your property listings.</p></div>
-        )}
-
-        {activeSection === "documents" && (
-          <div><h2 className="text-2xl mb-6">Documents</h2><p className="text-muted-foreground">Manage your property documents, NIC, and deed uploads.</p></div>
-        )}
-
-        {activeSection === "enquiries" && (
-          <div><h2 className="text-2xl mb-6">Enquiries</h2><p className="text-muted-foreground">View and respond to property enquiries from potential buyers.</p></div>
-        )}
-
-        {activeSection === "properties" && (
-          <div><h2 className="text-2xl mb-6">Saved Properties</h2><p className="text-muted-foreground">Your favorited properties will appear here.</p></div>
-        )}
-
-        {activeSection === "reports" && (
-          <div><h2 className="text-2xl mb-6">Reports</h2><p className="text-muted-foreground">Platform analytics and reporting tools.</p></div>
         )}
       </div>
     </div>
@@ -412,6 +428,14 @@ const StatCard = ({ icon, label, value, color }: { icon: string; label: string; 
     <div className="text-3xl mb-2">{icon}</div>
     <div className={`font-display text-2xl font-bold ${color}`}>{value}</div>
     <div className="text-[13px] text-muted-foreground">{label}</div>
+  </div>
+);
+
+const FeeCard = ({ icon, category, rate, basis }: { icon: string; category: string; rate: string; basis: string }) => (
+  <div className="bg-card rounded-lg p-4 border border-border flex items-center gap-4">
+    <span className="text-3xl flex-shrink-0">{icon}</span>
+    <div className="flex-1"><div className="font-bold text-sm">{category}</div><div className="text-[13px] text-muted-foreground mt-0.5">{basis}</div></div>
+    <div className="bg-background rounded-lg px-4 py-2.5 text-center flex-shrink-0"><div className="font-display text-lg font-bold text-primary">{rate}</div></div>
   </div>
 );
 
