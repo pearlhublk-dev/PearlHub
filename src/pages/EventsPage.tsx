@@ -17,6 +17,7 @@ const EventsPage = () => {
   const [seatConfig, setSeatConfig] = useState({ vipRows: 2, premiumRows: 4 });
   const [showPayment, setShowPayment] = useState(false);
   const [gateTime, setGateTime] = useState("18:00");
+  const [showInquiry, setShowInquiry] = useState(false);
 
   const eventCategories = [{ id: "all", label: "All Events" }, { id: "cinema", label: "🎬 Cinema" }, { id: "concert", label: "🎵 Concerts" }, { id: "sports", label: "🏏 Sports" }];
 
