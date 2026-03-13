@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
+import ShareButtons from "@/components/ShareButtons";
 
 interface SocialPost {
   id: string;
