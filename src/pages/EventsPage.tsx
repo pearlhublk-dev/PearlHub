@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 import LankaPayModal from "@/components/LankaPayModal";
+import InquiryModal from "@/components/InquiryModal";
+import TrustBanner from "@/components/TrustBanner";
 import { PearlEvent } from "@/types/pearl-hub";
 
 const EventsPage = () => {
