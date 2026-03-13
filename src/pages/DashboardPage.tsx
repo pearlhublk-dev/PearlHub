@@ -30,6 +30,7 @@ const DashboardPage = () => {
     owner: [
       { id: "overview", label: "Overview", icon: "📊" },
       { id: "listings", label: "My Listings", icon: "🏠" },
+      { id: "enquiries", label: "Enquiries", icon: "📩" },
       { id: "analytics", label: "Analytics", icon: "📈" },
       { id: "rates", label: "Rate Management", icon: "⚙️" },
       { id: "pricing", label: "Fees & Pricing", icon: "💳" },
@@ -41,6 +42,7 @@ const DashboardPage = () => {
     broker: [
       { id: "overview", label: "Overview", icon: "📊" },
       { id: "listings", label: "Listings (38/65)", icon: "🏢" },
+      { id: "enquiries", label: "Enquiries", icon: "📩" },
       { id: "analytics", label: "Analytics", icon: "📈" },
       { id: "rates", label: "Rate Management", icon: "⚙️" },
       { id: "pricing", label: "Fees & Pricing", icon: "💳" },
