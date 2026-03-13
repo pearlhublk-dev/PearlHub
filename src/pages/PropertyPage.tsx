@@ -59,6 +59,14 @@ const PropertyPage = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-gradient-to-br from-emerald to-emerald/70 py-10">
+      </div>
+      <TrustBanner stats={[
+        { value: "6,240+", label: "Properties", icon: "🏘️" },
+        { value: "890+", label: "Verified Owners", icon: "✓" },
+        { value: "Rs. 3.9M", label: "Transacted", icon: "💰" },
+        { value: "4.8★", label: "Avg Rating", icon: "⭐" },
+      ]} />
+      <div className="bg-gradient-to-br from-emerald to-emerald/70 py-10" style={{ display: "none" }}>
         <div className="container">
           <div className="flex justify-between items-center flex-wrap gap-4">
             <div>
