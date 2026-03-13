@@ -51,6 +51,12 @@ const VehiclesPage = () => {
           <button onClick={() => navigate("/terms")} className="bg-white/10 border border-white/20 text-pearl px-4 py-2 rounded-lg text-xs font-bold">📄 Supplier T&C</button>
         </div>
       </div>
+      <TrustBanner stats={[
+        { value: "1,820+", label: "Vehicles", icon: "🚗" },
+        { value: "100km", label: "Daily Included", icon: "📏" },
+        { value: "4.9★", label: "Avg Rating", icon: "⭐" },
+        { value: "24/7", label: "Roadside Help", icon: "🛡️" },
+      ]} />
 
       <div className="bg-card border-b border-border py-3">
         <div className="container flex gap-2 items-center flex-wrap">
