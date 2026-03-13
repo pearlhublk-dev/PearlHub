@@ -30,6 +30,7 @@ const PropertyPage = () => {
   const [showWantedModal, setShowWantedModal] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [paymentContext, setPaymentContext] = useState<{ amount: number; description: string; onSuccess: () => void }>({ amount: 0, description: "", onSuccess: () => {} });
+  const [showInquiry, setShowInquiry] = useState(false);
 
   const [wantedListings] = useState<WantedListing[]>([
     { id: "W001", title: "Looking for 3BR House in Colombo 5/7", location: "Colombo 05 or 07", budget: "Rs. 50M – 70M", beds: 3, area: "2,500+ sq.ft", description: "Family looking for a spacious 3-bedroom house in a quiet residential area with parking and garden.", contact: "Verified Buyer", date: "2024-03-10" },
