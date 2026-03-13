@@ -8,7 +8,7 @@ import TrustBanner from "@/components/TrustBanner";
 import { Stay } from "@/types/pearl-hub";
 
 const StaysPage = () => {
-  const { data, showToast } = useAppContext();
+  const { data, showToast, addRecentlyViewed } = useAppContext();
   const [filter, setFilter] = useState({ type: "all", maxPrice: "", location: "", minRating: "0", amenity: "" });
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [selectedStay, setSelectedStay] = useState<Stay | null>(null);
