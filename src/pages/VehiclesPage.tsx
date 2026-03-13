@@ -17,6 +17,7 @@ const VehiclesPage = () => {
   const [form, setForm] = useState({ startDate: "", endDate: "", pickupTime: "09:00", returnTime: "09:00", driver: "no", agreedToTerms: false });
   const [showTerms, setShowTerms] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [showInquiry, setShowInquiry] = useState(false);
 
   const vehicleTypes = [{ id: "all", label: "All" }, { id: "car", label: "Cars" }, { id: "van", label: "Vans" }, { id: "jeep", label: "Jeeps" }, { id: "bus", label: "Buses" }, { id: "luxury_coach", label: "Luxury Coach" }];
 
