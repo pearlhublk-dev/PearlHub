@@ -66,6 +66,12 @@ const StaysPage = () => {
           <p className="text-pearl/75 mt-1.5">Hotels • Villas • Guest Houses • Hostels • Sri Lanka Tourism Board Approved</p>
         </div>
       </div>
+      <TrustBanner stats={[
+        { value: "3,180+", label: "Stays", icon: "🏨" },
+        { value: "340+", label: "STB Approved", icon: "✓" },
+        { value: "4.7★", label: "Avg Rating", icon: "⭐" },
+        { value: "98%", label: "Happy Guests", icon: "😊" },
+      ]} />
 
       <div className="bg-card border-b border-border py-3">
         <div className="container flex gap-2 items-center flex-wrap">
