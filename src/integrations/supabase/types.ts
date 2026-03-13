@@ -92,6 +92,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          listing_id: string
+          listing_type: string
+          rating: number
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          listing_id: string
+          listing_type: string
+          rating: number
+          user_id: string
+          user_name?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          listing_id?: string
+          listing_type?: string
+          rating?: number
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       service_rates: {
         Row: {
           created_at: string

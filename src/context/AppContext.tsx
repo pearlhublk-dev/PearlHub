@@ -12,6 +12,19 @@ interface RecentlyViewed {
   viewedAt: number;
 }
 
+export interface CompareItem {
+  id: string;
+  title: string;
+  itemType: string;
+  location: string;
+  price?: number;
+  priceUnit?: string;
+  rating?: number;
+  subtype?: string;
+  details?: string;
+  features?: string;
+}
+
 interface AppContextType {
   data: AppData;
   currentUser: UserRole;
@@ -26,6 +39,10 @@ interface AppContextType {
   markNotificationRead: (id: number) => void;
   recentlyViewed: RecentlyViewed[];
   addRecentlyViewed: (item: Omit<RecentlyViewed, "viewedAt">) => void;
+  compareItems: CompareItem[];
+  addToCompare: (item: CompareItem) => void;
+  removeFromCompare: (id: string) => void;
+  clearCompare: () => void;
 }
 
 interface Notification {
@@ -49,6 +66,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUser] = useState<UserRole>("customer");
   const [toast, setToast] = useState<{ message: string; type: string; id: number } | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [compareItems, setCompareItems] = useState<CompareItem[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([
     { id: 1, title: "Welcome to Pearl Hub!", message: "Explore properties, stays, vehicles and events across Sri Lanka.", read: false, time: "Just now" },
     { id: 2, title: "New Properties Listed", message: "12 new properties have been added in Colombo area.", read: false, time: "2 hours ago" },
@@ -89,8 +107,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   }, []);
 
+  const addToCompare = useCallback((item: CompareItem) => {
+    setCompareItems(prev => {
+      if (prev.find(c => c.id === item.id)) return prev;
+      if (prev.length >= 3) return prev;
+      return [...prev, item];
+    });
+  }, []);
+
+  const removeFromCompare = useCallback((id: string) => {
+    setCompareItems(prev => prev.filter(c => c.id !== id));
+  }, []);
+
+  const clearCompare = useCallback(() => setCompareItems([]), []);
+
   return (
-    <AppContext.Provider value={{ data, currentUser, setCurrentUser, showToast, toast, clearToast, favorites, toggleFavorite, notifications, addNotification, markNotificationRead, recentlyViewed, addRecentlyViewed }}>
+    <AppContext.Provider value={{ data, currentUser, setCurrentUser, showToast, toast, clearToast, favorites, toggleFavorite, notifications, addNotification, markNotificationRead, recentlyViewed, addRecentlyViewed, compareItems, addToCompare, removeFromCompare, clearCompare }}>
       {children}
     </AppContext.Provider>
   );

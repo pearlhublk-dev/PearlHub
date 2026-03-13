@@ -4,7 +4,11 @@ import { useAppContext } from "@/context/AppContext";
 import LankaPayModal from "@/components/LankaPayModal";
 import InquiryModal from "@/components/InquiryModal";
 import TrustBanner from "@/components/TrustBanner";
+import ShareButtons from "@/components/ShareButtons";
+import ReviewSection from "@/components/ReviewSection";
 import { PearlEvent } from "@/types/pearl-hub";
+
+const isUrl = (s: string) => s.startsWith("http");
 
 const EventsPage = () => {
   const { data, showToast, addRecentlyViewed } = useAppContext();
@@ -72,7 +76,13 @@ const EventsPage = () => {
             <motion.div key={evt.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
               onClick={() => { setSelected(evt); setStep(1); setSelectedSeats([]); setQuantity(1); setTicketType("standard"); setGateTime("18:00"); setSeatConfig({ vipRows: Math.max(1, Math.floor(evt.seats.rows * 0.1)), premiumRows: Math.max(1, Math.floor(evt.seats.rows * 0.2)) }); addRecentlyViewed({ id: evt.id, title: evt.title, type: "event", price: evt.prices.standard, image: evt.image, location: evt.venue }); }}
               className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer border border-border flex">
-              <div className="w-28 flex items-center justify-center text-5xl flex-shrink-0" style={{ background: "linear-gradient(135deg, hsl(256 57% 29% / 0.1), transparent)" }}>{evt.image}</div>
+              <div className="w-28 flex-shrink-0 overflow-hidden">
+                {isUrl(evt.image) ? (
+                  <img src={evt.image} alt={evt.title} className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-5xl" style={{ background: "linear-gradient(135deg, hsl(256 57% 29% / 0.1), transparent)" }}>{evt.image}</div>
+                )}
+              </div>
               <div className="p-4 flex-1">
                 <div className="flex gap-1.5 mb-1.5">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-sapphire/10 text-sapphire capitalize">{evt.category}</span>
@@ -102,16 +112,26 @@ const EventsPage = () => {
           <div className="fixed inset-0 bg-obsidian/75 z-[1000] flex items-center justify-center p-5" onClick={() => setSelected(null)}>
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="bg-card rounded-2xl max-w-[850px] w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="px-7 py-6 flex justify-between" style={{ background: "linear-gradient(135deg, hsl(256 57% 29%), hsl(256 57% 12%))" }}>
-                <div>
-                  <h2 className="text-pearl text-xl mb-1">{selected.image} {selected.title}</h2>
-                  <p className="text-pearl/70 text-sm">🏛 {selected.venue} • 📅 {selected.date} • ⏰ {selected.time}</p>
+              <div className="relative h-40 overflow-hidden rounded-t-2xl">
+                {isUrl(selected.image) ? (
+                  <img src={selected.image} alt={selected.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-6xl" style={{ background: "linear-gradient(135deg, hsl(256 57% 29%), hsl(256 57% 12%))" }}>{selected.image}</div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-obsidian/80 to-transparent" />
+                <div className="absolute bottom-4 left-7 right-7 flex justify-between items-end">
+                  <div>
+                    <h2 className="text-pearl text-xl mb-1">{selected.title}</h2>
+                    <p className="text-pearl/70 text-sm">🏛 {selected.venue} • 📅 {selected.date} • ⏰ {selected.time}</p>
+                  </div>
+                  <button onClick={() => setSelected(null)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer">✕</button>
                 </div>
-                <button onClick={() => setSelected(null)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer">✕</button>
               </div>
               <div className="p-7">
+                <ShareButtons title={selected.title} description={`${selected.venue} – ${selected.date}`} />
+
                 {/* Steps */}
-                <div className="flex gap-2 mb-6">
+                <div className="flex gap-2 mb-6 mt-4">
                   {["Select Tickets","Configure & Choose Seats","Confirm & Pay"].map((s, i) => (
                     <div key={s} className="flex-1 text-center">
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center mx-auto mb-1 text-xs font-bold ${i + 1 <= step ? "text-pearl" : "bg-pearl-dark text-muted-foreground"}`}
@@ -259,6 +279,8 @@ const EventsPage = () => {
                       <button onClick={() => setShowPayment(true)}
                         className="flex-1 text-pearl py-3 rounded-lg font-bold text-sm" style={{ background: "hsl(256 57% 29%)" }}>💳 Pay Rs. {grandTotal.toLocaleString()} via LankaPay</button>
                     </div>
+
+                    <ReviewSection listingId={selected.id} listingType="event" />
                   </div>
                 )}
               </div>

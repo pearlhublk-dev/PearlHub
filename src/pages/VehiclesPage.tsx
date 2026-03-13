@@ -6,7 +6,11 @@ import LeafletMap from "@/components/LeafletMap";
 import LankaPayModal from "@/components/LankaPayModal";
 import InquiryModal from "@/components/InquiryModal";
 import TrustBanner from "@/components/TrustBanner";
+import ShareButtons from "@/components/ShareButtons";
+import ReviewSection from "@/components/ReviewSection";
 import { Vehicle } from "@/types/pearl-hub";
+
+const isUrl = (s: string) => s.startsWith("http");
 
 const VehiclesPage = () => {
   const { data, showToast, addRecentlyViewed } = useAppContext();
@@ -28,7 +32,7 @@ const VehiclesPage = () => {
     return true;
   });
 
-  const mapMarkers = filtered.map(v => ({ lat: v.lat, lng: v.lng, title: `${v.make} ${v.model}`, location: v.location, price: v.price, emoji: v.image, type: "vehicle" as const }));
+  const mapMarkers = filtered.map(v => ({ lat: v.lat, lng: v.lng, title: `${v.make} ${v.model}`, location: v.location, price: v.price, emoji: isUrl(v.image) ? "🚗" : v.image, type: "vehicle" as const }));
 
   const days = form.startDate && form.endDate ? Math.max(1, Math.ceil((new Date(form.endDate).getTime() - new Date(form.startDate).getTime()) / 86400000)) : 0;
   const dailyKmLimit = 100;
@@ -85,8 +89,12 @@ const VehiclesPage = () => {
               <motion.div key={v.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                 onClick={() => { setSelected(v); setForm({ startDate: "", endDate: "", pickupTime: "09:00", returnTime: "09:00", driver: v.driver === "included" ? "yes" : "no", agreedToTerms: false }); addRecentlyViewed({ id: v.id, title: `${v.make} ${v.model}`, type: "vehicle", price: v.price, image: v.image, location: v.location }); }}
                 className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
-                <div className="h-36 bg-gradient-to-br from-ruby/10 to-ruby/[0.03] flex items-center justify-center text-5xl relative">
-                  {v.image}
+                <div className="h-36 relative overflow-hidden">
+                  {isUrl(v.image) ? (
+                    <img src={v.image} alt={`${v.make} ${v.model}`} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-ruby/10 to-ruby/[0.03] flex items-center justify-center text-5xl">{v.image}</div>
+                  )}
                   <span className="absolute top-2.5 left-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-ruby/10 text-ruby capitalize">{v.type.replace("_", " ")}</span>
                   <span className={`absolute top-2.5 right-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${v.driver === "included" ? "bg-emerald/10 text-emerald" : "bg-pearl-dark text-muted-foreground"}`}>
                     {v.driver === "included" ? "👨‍✈️ Driver Included" : "🔑 Self Drive"}
@@ -118,16 +126,26 @@ const VehiclesPage = () => {
           <div className="fixed inset-0 bg-obsidian/75 z-[1000] flex items-center justify-center p-5" onClick={() => setSelected(null)}>
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="bg-card rounded-2xl max-w-[700px] w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="bg-gradient-to-br from-ruby to-ruby/70 px-7 py-6 flex justify-between">
-                <div>
-                  <h2 className="text-pearl text-xl mb-1">{selected.image} {selected.make} {selected.model}</h2>
-                  <p className="text-pearl/70 text-sm">📍 {selected.location} • {selected.year} • {selected.seats} seats • ★ {selected.rating}</p>
+              <div className="relative h-40 overflow-hidden rounded-t-2xl">
+                {isUrl(selected.image) ? (
+                  <img src={selected.image} alt={`${selected.make} ${selected.model}`} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-ruby to-ruby/70 flex items-center justify-center text-5xl">{selected.image}</div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-obsidian/80 to-transparent" />
+                <div className="absolute bottom-4 left-7 right-7 flex justify-between items-end">
+                  <div>
+                    <h2 className="text-pearl text-xl mb-1">{selected.make} {selected.model}</h2>
+                    <p className="text-pearl/70 text-sm">📍 {selected.location} • {selected.year} • {selected.seats} seats • ★ {selected.rating}</p>
+                  </div>
+                  <button onClick={() => setSelected(null)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer">✕</button>
                 </div>
-                <button onClick={() => setSelected(null)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer">✕</button>
               </div>
               <div className="p-7">
+                <ShareButtons title={`${selected.make} ${selected.model}`} description={`Rs. ${selected.price.toLocaleString()}/day – ${selected.location}`} />
+                
                 {/* Driver option */}
-                <div className="mb-4">
+                <div className="mb-4 mt-4">
                   <label className="block text-xs font-semibold mb-2">Driver Option</label>
                   <div className="flex gap-2">
                     {selected.driver === "included" ? (
@@ -152,7 +170,6 @@ const VehiclesPage = () => {
                   </div>
                 </div>
 
-                {/* Dates & Times */}
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div><label className="block text-xs font-semibold mb-1">Pickup Date</label><input type="date" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} min={new Date().toISOString().split("T")[0]} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
                   <div><label className="block text-xs font-semibold mb-1">Return Date</label><input type="date" value={form.endDate} onChange={e => setForm({...form, endDate: e.target.value})} min={form.startDate} className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
@@ -176,7 +193,6 @@ const VehiclesPage = () => {
                   </div>
                 </div>
 
-                {/* Trip Summary */}
                 {days > 0 && (
                   <div className="bg-background rounded-lg p-4 mb-4">
                     <h4 className="text-sm font-bold mb-3">📊 Trip Summary</h4>
@@ -207,7 +223,6 @@ const VehiclesPage = () => {
                   </div>
                 )}
 
-                {/* Terms checkbox */}
                 <label className="flex items-start gap-2 text-xs text-muted-foreground mb-4 cursor-pointer">
                   <input type="checkbox" checked={form.agreedToTerms} onChange={e => setForm({...form, agreedToTerms: e.target.checked})} className="mt-0.5 rounded" />
                   <span>I agree to the <button type="button" onClick={() => setShowTerms(true)} className="text-primary font-semibold underline">Vehicle Rental Terms & Conditions</button> including the KM limits, excess charges, and cancellation policy.</span>
@@ -220,13 +235,14 @@ const VehiclesPage = () => {
                 }} className="w-full bg-ruby hover:bg-ruby-light text-pearl py-3 rounded-lg font-bold transition-all mb-2">💳 Book & Pay Rs. {grandTotal.toLocaleString()} via LankaPay</button>
                 <button onClick={() => setShowInquiry(true)}
                   className="w-full border border-ruby text-ruby py-2.5 rounded-lg font-bold transition-all hover:bg-ruby/5">📩 Enquire First</button>
+
+                <ReviewSection listingId={selected.id} listingType="vehicle" />
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Terms modal */}
       {showTerms && (
         <div className="fixed inset-0 bg-obsidian/75 z-[1100] flex items-center justify-center p-5" onClick={() => setShowTerms(false)}>
           <div className="bg-card rounded-2xl max-w-[600px] w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>

@@ -61,6 +61,32 @@ const DashboardPage = () => {
       { id: "commissions", label: "Commissions", icon: "💹" },
       { id: "settings", label: "Settings", icon: "⚙️" },
     ],
+    stay_provider: [
+      { id: "overview", label: "Overview", icon: "📊" },
+      { id: "listings", label: "My Stays", icon: "🏨" },
+      { id: "enquiries", label: "Enquiries", icon: "📩" },
+      { id: "analytics", label: "Analytics", icon: "📈" },
+      { id: "rates", label: "Rate Management", icon: "⚙️" },
+      { id: "pricing", label: "Fees & Pricing", icon: "💳" },
+      { id: "revenue", label: "Revenue", icon: "💰" },
+      { id: "profile", label: "Profile", icon: "👤" },
+    ],
+    event_organizer: [
+      { id: "overview", label: "Overview", icon: "📊" },
+      { id: "listings", label: "My Events", icon: "🎭" },
+      { id: "enquiries", label: "Enquiries", icon: "📩" },
+      { id: "analytics", label: "Analytics", icon: "📈" },
+      { id: "rates", label: "Rate Management", icon: "⚙️" },
+      { id: "pricing", label: "Fees & Pricing", icon: "💳" },
+      { id: "revenue", label: "Revenue", icon: "💰" },
+      { id: "profile", label: "Profile", icon: "👤" },
+    ],
+    sme: [
+      { id: "overview", label: "Overview", icon: "📊" },
+      { id: "listings", label: "My Listings", icon: "🏪" },
+      { id: "enquiries", label: "Enquiries", icon: "📩" },
+      { id: "profile", label: "Profile", icon: "👤" },
+    ],
   };
 
   const mockBookings = [
@@ -168,7 +194,7 @@ const DashboardPage = () => {
 
         {activeSection === "analytics" && currentUser !== "customer" && <AnalyticsDashboard />}
 
-        {activeSection === "enquiries" && (currentUser === "owner" || currentUser === "broker") && (
+        {activeSection === "enquiries" && (currentUser === "owner" || currentUser === "broker" || currentUser === "stay_provider" || currentUser === "event_organizer" || currentUser === "sme") && (
           <EnquiriesSection userId={user?.id} />
         )}
 
