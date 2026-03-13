@@ -349,6 +349,7 @@ const PropertyPage = () => {
               <div className="mb-4"><label className="block text-xs font-semibold mb-1">Description</label>
                 <textarea rows={3} placeholder="Describe the property…" className="w-full rounded-md border border-input px-3 py-2 text-sm resize-y" />
               </div>
+              <ImageUpload bucket="listings" maxFiles={5} onUpload={setListingImages} label="Property Photos" className="mb-4" />
               <button onClick={() => {
                 initiatePayment(
                   currentUser === "owner" ? 1000 : 23000,
