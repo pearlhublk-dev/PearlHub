@@ -80,6 +80,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   }, []);
 
+  const addRecentlyViewed = useCallback((item: Omit<RecentlyViewed, "viewedAt">) => {
+    setRecentlyViewed(prev => {
+      const filtered = prev.filter(r => r.id !== item.id);
+      const updated = [{ ...item, viewedAt: Date.now() }, ...filtered].slice(0, 10);
+      localStorage.setItem("pearl-hub-recent", JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
     <AppContext.Provider value={{ data, currentUser, setCurrentUser, showToast, toast, clearToast, favorites, toggleFavorite, notifications, addNotification, markNotificationRead }}>
       {children}
