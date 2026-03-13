@@ -105,8 +105,10 @@ const Header = () => {
             )}
           </div>
 
-          {/* Globe icon */}
-          <button className="bg-white/[0.08] border border-white/15 text-pearl rounded-md p-2 text-sm">🌐</button>
+          {/* Dark mode toggle */}
+          <button onClick={toggleDarkMode} className="bg-white/[0.08] border border-white/15 text-pearl rounded-md p-2 text-sm" title={darkMode ? "Light mode" : "Dark mode"}>
+            {darkMode ? "☀️" : "🌙"}
+          </button>
 
           {/* Role Switcher - only show when logged in or for demo */}
           <select value={currentUser} onChange={e => setCurrentUser(e.target.value as UserRole)}
