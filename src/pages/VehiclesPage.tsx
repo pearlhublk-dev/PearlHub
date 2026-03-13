@@ -258,6 +258,16 @@ const VehiclesPage = () => {
         description={`Vehicle Rental: ${selected?.make} ${selected?.model} – ${days} days`}
         onSuccess={() => { showToast("🚗 Vehicle booked successfully! Confirmation sent to your email.", "success"); setSelected(null); setShowPayment(false); }}
       />
+
+      {selected && (
+        <InquiryModal
+          open={showInquiry}
+          onClose={() => setShowInquiry(false)}
+          listingId={selected.id}
+          listingType="vehicle"
+          listingTitle={`${selected.make} ${selected.model}`}
+        />
+      )}
     </div>
   );
 };

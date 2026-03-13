@@ -274,6 +274,16 @@ const EventsPage = () => {
         description={`Event Tickets: ${selected?.title} – ${selectedSeats.length} tickets`}
         onSuccess={() => { showToast("🎫 Tickets booked! QR codes sent to your email.", "success"); setSelected(null); setShowPayment(false); }}
       />
+
+      {selected && (
+        <InquiryModal
+          open={showInquiry}
+          onClose={() => setShowInquiry(false)}
+          listingId={selected.id}
+          listingType="event"
+          listingTitle={selected.title}
+        />
+      )}
     </div>
   );
 };

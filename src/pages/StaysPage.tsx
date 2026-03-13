@@ -229,6 +229,16 @@ const StaysPage = () => {
         description={`Stay at ${selectedStay?.name || ""} – ${nights} nights`}
         onSuccess={() => { showToast("🏨 Booking confirmed! Confirmation sent to your email.", "success"); setSelectedStay(null); setShowPayment(false); }}
       />
+
+      {selectedStay && (
+        <InquiryModal
+          open={showInquiry}
+          onClose={() => setShowInquiry(false)}
+          listingId={selectedStay.id}
+          listingType="stay"
+          listingTitle={selectedStay.name}
+        />
+      )}
     </div>
   );
 };
