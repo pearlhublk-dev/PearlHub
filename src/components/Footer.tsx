@@ -3,6 +3,14 @@ import { useNavigate } from "react-router-dom";
 const Footer = () => {
   const navigate = useNavigate();
 
+  const socialLinks = [
+    { icon: "📘", label: "Facebook", url: "https://facebook.com/pearlhub.lk" },
+    { icon: "📷", label: "Instagram", url: "https://instagram.com/pearlhub.lk" },
+    { icon: "🐦", label: "X (Twitter)", url: "https://twitter.com/pearlhub_lk" },
+    { icon: "📺", label: "YouTube", url: "https://youtube.com/@pearlhub" },
+    { icon: "💼", label: "LinkedIn", url: "https://linkedin.com/company/pearlhub" },
+  ];
+
   return (
     <footer className="bg-obsidian pt-10 pb-6">
       <div className="container">
@@ -18,10 +26,12 @@ const Footer = () => {
             <p className="text-[13px] text-fog leading-relaxed max-w-[260px]">
               Sri Lanka's premier multi-domain marketplace platform connecting customers with the island's finest properties, stays, vehicles, and events.
             </p>
-            {/* Social links */}
             <div className="flex gap-2 mt-4">
-              {["📘", "📷", "🐦", "📺", "💼"].map((icon, i) => (
-                <button key={i} className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center text-sm hover:bg-primary/20 transition-all">{icon}</button>
+              {socialLinks.map((s) => (
+                <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" title={s.label}
+                  className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center text-sm hover:bg-primary/20 transition-all">
+                  {s.icon}
+                </a>
               ))}
             </div>
           </div>

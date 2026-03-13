@@ -5,8 +5,12 @@ import LankaPayModal from "@/components/LankaPayModal";
 import { Property } from "@/types/pearl-hub";
 import InquiryModal from "@/components/InquiryModal";
 import TrustBanner from "@/components/TrustBanner";
+import ShareButtons from "@/components/ShareButtons";
+import ComparisonTool from "@/components/ComparisonTool";
 
 const formatPrice = (p: number) => p >= 1000000 ? `Rs. ${(p / 1000000).toFixed(1)}M` : `Rs. ${p.toLocaleString()}`;
+
+const isUrl = (s: string) => s.startsWith("http");
 
 interface WantedListing {
   id: string;
@@ -21,7 +25,7 @@ interface WantedListing {
 }
 
 const PropertyPage = () => {
-  const { data, currentUser, showToast, favorites, toggleFavorite, addRecentlyViewed } = useAppContext();
+  const { data, currentUser, showToast, favorites, toggleFavorite, addRecentlyViewed, addToCompare, compareItems } = useAppContext();
   const [filter, setFilter] = useState({ type: "all", minPrice: "", maxPrice: "", beds: "all", location: "" });
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
   const [selectedProp, setSelectedProp] = useState<Property | null>(null);
@@ -47,7 +51,7 @@ const PropertyPage = () => {
     return true;
   });
 
-  const mapMarkers = filtered.map(p => ({ lat: p.lat, lng: p.lng, title: p.title, location: p.location, price: p.price, emoji: p.image, type: "property" }));
+  const mapMarkers = filtered.map(p => ({ lat: p.lat, lng: p.lng, title: p.title, location: p.location, price: p.price, emoji: isUrl(p.image) ? "🏠" : p.image, type: "property" }));
   const typeColorMap: Record<string, string> = { sale: "bg-emerald/10 text-emerald", rent: "bg-sapphire/10 text-sapphire", lease: "bg-primary/10 text-gold-dark" };
 
   const initiatePayment = (amount: number, description: string, onSuccess: () => void) => {
@@ -57,7 +61,6 @@ const PropertyPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="bg-gradient-to-br from-emerald to-emerald/70 py-10">
         <div className="container">
           <div className="flex justify-between items-center flex-wrap gap-4">
@@ -75,7 +78,6 @@ const PropertyPage = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="bg-card border-b border-border">
         <div className="container flex gap-0">
           <button onClick={() => setActiveTab("listings")}
@@ -97,7 +99,6 @@ const PropertyPage = () => {
 
       {activeTab === "listings" && (
         <>
-          {/* Filters */}
           <div className="bg-card border-b border-border py-4">
             <div className="container flex gap-3 items-center flex-wrap">
               <select value={filter.type} onChange={e => setFilter({...filter, type: e.target.value})} className="rounded-md border border-input px-3 py-2 text-sm bg-card w-auto">
@@ -129,16 +130,25 @@ const PropertyPage = () => {
                   <div key={prop.id} onClick={() => { setSelectedProp(prop); addRecentlyViewed({ id: prop.id, title: prop.title, type: "property", price: prop.price, image: prop.image, location: prop.location }); }} className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
                     {viewMode === "grid" ? (
                       <>
-                        <div className="h-44 bg-gradient-to-br from-emerald/10 to-emerald/[0.03] flex items-center justify-center text-6xl relative">
-                          {prop.image}
+                        <div className="h-44 relative overflow-hidden">
+                          {isUrl(prop.image) ? (
+                            <img src={prop.image} alt={prop.title} className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-emerald/10 to-emerald/[0.03] flex items-center justify-center text-6xl">{prop.image}</div>
+                          )}
                           <div className="absolute top-3 left-3 flex gap-1.5">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${typeColorMap[prop.type]}`}>{prop.type === "sale" ? "For Sale" : prop.type === "rent" ? "For Rent" : "For Lease"}</span>
-                            {prop.owner === "owner" && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-primary/15 text-gold-dark">🎁 Promo</span>}
                           </div>
-                          <button onClick={e => { e.stopPropagation(); toggleFavorite(prop.id); }}
-                            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center text-sm border-none cursor-pointer">
-                            {favorites.includes(prop.id) ? "❤️" : "🤍"}
-                          </button>
+                          <div className="absolute top-3 right-3 flex gap-1.5">
+                            <button onClick={e => { e.stopPropagation(); toggleFavorite(prop.id); }}
+                              className="w-8 h-8 rounded-full bg-card/90 flex items-center justify-center text-sm border-none cursor-pointer">
+                              {favorites.includes(prop.id) ? "❤️" : "🤍"}
+                            </button>
+                            <button onClick={e => { e.stopPropagation(); addToCompare({ id: prop.id, title: prop.title, itemType: "property", location: prop.location, price: prop.price, subtype: prop.subtype, details: `${prop.beds}BR ${prop.baths}BA ${prop.area.toLocaleString()}sqft`, features: prop.amenities.slice(0,3).join(", ") }); showToast(compareItems.length >= 3 ? "Max 3 items" : "Added to compare", compareItems.length >= 3 ? "warning" : "success"); }}
+                              className="w-8 h-8 rounded-full bg-card/90 flex items-center justify-center text-sm border-none cursor-pointer" title="Compare">
+                              📊
+                            </button>
+                          </div>
                         </div>
                         <div className="p-4">
                           <div className="font-display text-base font-bold mb-1 leading-tight">{prop.title}</div>
@@ -159,7 +169,13 @@ const PropertyPage = () => {
                       </>
                     ) : (
                       <div className="flex">
-                        <div className="w-24 bg-background flex items-center justify-center text-4xl flex-shrink-0">{prop.image}</div>
+                        <div className="w-24 flex-shrink-0 overflow-hidden">
+                          {isUrl(prop.image) ? (
+                            <img src={prop.image} alt={prop.title} className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full bg-background flex items-center justify-center text-4xl">{prop.image}</div>
+                          )}
+                        </div>
                         <div className="p-4 flex-1 flex items-center gap-5 flex-wrap">
                           <div className="flex-1 min-w-[200px]">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase mr-2 ${typeColorMap[prop.type]}`}>{prop.type}</span>
@@ -188,7 +204,7 @@ const PropertyPage = () => {
         </>
       )}
 
-      {/* Wanted Tab */}
+      {/* Wanted Tab - open to ALL roles */}
       {activeTab === "wanted" && (
         <div className="container py-10">
           <div className="flex justify-between items-center mb-6">
@@ -222,12 +238,10 @@ const PropertyPage = () => {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <div className="text-xs text-muted-foreground mb-2">👤 {w.contact}</div>
-                    {(currentUser === "owner" || currentUser === "broker") && (
-                      <button onClick={() => showToast("Enquiry sent to the buyer!", "success")}
-                        className="bg-emerald hover:bg-emerald-light text-accent-foreground px-4 py-2 rounded-lg text-xs font-bold transition-all">
-                        📞 Contact Buyer
-                      </button>
-                    )}
+                    <button onClick={() => showToast("Enquiry sent to the buyer!", "success")}
+                      className="bg-emerald hover:bg-emerald-light text-accent-foreground px-4 py-2 rounded-lg text-xs font-bold transition-all">
+                      📞 Contact Buyer
+                    </button>
                   </div>
                 </div>
               </div>
@@ -240,14 +254,25 @@ const PropertyPage = () => {
       {selectedProp && (
         <div className="fixed inset-0 bg-obsidian/75 z-[1000] flex items-center justify-center p-5 fade-in" onClick={() => setSelectedProp(null)}>
           <div className="bg-card rounded-2xl max-w-[800px] w-full max-h-[90vh] overflow-y-auto fade-up" onClick={e => e.stopPropagation()}>
-            <div className="bg-gradient-to-br from-emerald to-emerald/70 px-7 py-6 flex justify-between items-center">
-              <div>
-                <h2 className="text-pearl text-xl mb-1">{selectedProp.image} {selectedProp.title}</h2>
-                <p className="text-pearl/75 text-sm">📍 {selectedProp.location} • {selectedProp.subtype}</p>
+            <div className="relative h-48 overflow-hidden rounded-t-2xl">
+              {isUrl(selectedProp.image) ? (
+                <img src={selectedProp.image} alt={selectedProp.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-emerald to-emerald/70 flex items-center justify-center text-6xl text-pearl">{selectedProp.image}</div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-obsidian/80 to-transparent" />
+              <div className="absolute bottom-4 left-7 right-7 flex justify-between items-end">
+                <div>
+                  <h2 className="text-pearl text-xl mb-1">{selectedProp.title}</h2>
+                  <p className="text-pearl/75 text-sm">📍 {selectedProp.location} • {selectedProp.subtype}</p>
+                </div>
+                <button onClick={() => setSelectedProp(null)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer text-lg">✕</button>
               </div>
-              <button onClick={() => setSelectedProp(null)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer text-lg">✕</button>
             </div>
             <div className="p-7">
+              <div className="mb-4">
+                <ShareButtons title={selectedProp.title} description={`${formatPrice(selectedProp.price)} – ${selectedProp.location}`} />
+              </div>
               <div className="grid grid-cols-2 gap-3 mb-5">
                 {[
                   { label: "Price", value: `Rs. ${selectedProp.price.toLocaleString()}${selectedProp.type === "rent" ? "/mo" : ""}` },
@@ -274,17 +299,15 @@ const PropertyPage = () => {
               <div className="flex gap-2 flex-wrap mb-5">
                 {selectedProp.amenities?.map(a => <span key={a} className="inline-block px-2 py-0.5 bg-pearl-dark rounded text-[11px] font-medium text-muted-foreground">{a}</span>)}
               </div>
-              <LeafletMap markers={[{ lat: selectedProp.lat, lng: selectedProp.lng, title: selectedProp.title, location: selectedProp.location, price: selectedProp.price, emoji: selectedProp.image, type: "property" }]} center={[selectedProp.lat, selectedProp.lng]} zoom={14} height="250px" />
-              {currentUser === "customer" && (
-                <div className="flex gap-2.5 mt-5">
-                  <button onClick={() => setShowInquiry(true)}
-                    className="flex-1 bg-emerald hover:bg-emerald-light text-accent-foreground py-3 rounded-lg font-bold transition-all">📞 Enquire Now</button>
-                  <button onClick={() => toggleFavorite(selectedProp.id)}
-                    className="px-6 py-3 rounded-lg font-bold border border-input bg-card hover:bg-background transition-all">
-                    {favorites.includes(selectedProp.id) ? "❤️ Saved" : "🤍 Save"}
-                  </button>
-                </div>
-              )}
+              <LeafletMap markers={[{ lat: selectedProp.lat, lng: selectedProp.lng, title: selectedProp.title, location: selectedProp.location, price: selectedProp.price, emoji: isUrl(selectedProp.image) ? "🏠" : selectedProp.image, type: "property" }]} center={[selectedProp.lat, selectedProp.lng]} zoom={14} height="250px" />
+              <div className="flex gap-2.5 mt-5">
+                <button onClick={() => setShowInquiry(true)}
+                  className="flex-1 bg-emerald hover:bg-emerald-light text-accent-foreground py-3 rounded-lg font-bold transition-all">📞 Enquire Now</button>
+                <button onClick={() => toggleFavorite(selectedProp.id)}
+                  className="px-6 py-3 rounded-lg font-bold border border-input bg-card hover:bg-background transition-all">
+                  {favorites.includes(selectedProp.id) ? "❤️ Saved" : "🤍 Save"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -383,7 +406,6 @@ const PropertyPage = () => {
         </div>
       )}
 
-      {/* LankaPay Modal */}
       <LankaPayModal
         open={showPayment}
         onClose={() => setShowPayment(false)}
@@ -401,6 +423,8 @@ const PropertyPage = () => {
           listingTitle={selectedProp.title}
         />
       )}
+
+      <ComparisonTool />
     </div>
   );
 };

@@ -5,6 +5,8 @@ import { useAppContext } from "@/context/AppContext";
 import LeafletMap from "@/components/LeafletMap";
 import heroPropertyImg from "@/assets/hero-property.jpg";
 
+const isUrl = (s: string) => s.startsWith("http");
+
 const HomePage = () => {
   const { data, recentlyViewed } = useAppContext();
   const navigate = useNavigate();
@@ -46,10 +48,10 @@ const HomePage = () => {
   ];
 
   const allMarkers = [
-    ...data.properties.map(p => ({ lat: p.lat, lng: p.lng, title: p.title, location: p.location, price: p.price, emoji: p.image, type: "property" })),
-    ...data.stays.map(s => ({ lat: s.lat, lng: s.lng, title: s.name, location: s.location, price: s.pricePerNight, emoji: s.image, type: "stay", rating: s.rating })),
-    ...data.vehicles.map(v => ({ lat: v.lat, lng: v.lng, title: `${v.make} ${v.model}`, location: v.location, price: v.price, emoji: v.image, type: "vehicle" })),
-    ...data.events.map(e => ({ lat: e.lat, lng: e.lng, title: e.title, location: e.venue, emoji: e.image, type: "event" })),
+    ...data.properties.map(p => ({ lat: p.lat, lng: p.lng, title: p.title, location: p.location, price: p.price, emoji: isUrl(p.image) ? "🏠" : p.image, type: "property" })),
+    ...data.stays.map(s => ({ lat: s.lat, lng: s.lng, title: s.name, location: s.location, price: s.pricePerNight, emoji: isUrl(s.image) ? "🏨" : s.image, type: "stay", rating: s.rating })),
+    ...data.vehicles.map(v => ({ lat: v.lat, lng: v.lng, title: `${v.make} ${v.model}`, location: v.location, price: v.price, emoji: isUrl(v.image) ? "🚗" : v.image, type: "vehicle" })),
+    ...data.events.map(e => ({ lat: e.lat, lng: e.lng, title: e.title, location: e.venue, emoji: isUrl(e.image) ? "🎭" : e.image, type: "event" })),
   ];
 
   const handleSearch = () => {
@@ -94,7 +96,6 @@ const HomePage = () => {
               <button onClick={handleSearch} className="bg-obsidian hover:bg-slate text-pearl px-7 py-3 rounded-lg text-base font-bold transition-all">Search Hub</button>
             </div>
 
-            {/* Trending Tags */}
             <div className="flex justify-center gap-2 flex-wrap mb-12">
               {trendingTags.map(tag => (
                 <button key={tag} onClick={() => { setSearchQuery(tag.replace("#", "")); handleSearch(); }}
@@ -105,7 +106,6 @@ const HomePage = () => {
             </div>
           </motion.div>
 
-          {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-[700px] mx-auto">
             {stats.map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.1 }}
@@ -172,12 +172,18 @@ const HomePage = () => {
               {recentlyViewed.slice(0, 5).map(item => (
                 <motion.div key={item.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                   onClick={() => navigate(`/${item.type === "stay" ? "stays" : item.type === "event" ? "events" : item.type === "vehicle" ? "vehicles" : "property"}`)}
-                  className="bg-card rounded-xl p-4 border border-border cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all">
-                  <div className="text-3xl mb-2">{item.image}</div>
-                  <div className="font-bold text-sm truncate">{item.title}</div>
-                  <div className="text-xs text-muted-foreground truncate">📍 {item.location}</div>
-                  {item.price && <div className="text-sm font-bold text-primary mt-1">Rs. {item.price.toLocaleString()}</div>}
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-gold-dark capitalize mt-1">{item.type}</span>
+                  className="bg-card rounded-xl overflow-hidden border border-border cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all">
+                  {isUrl(item.image) ? (
+                    <img src={item.image} alt={item.title} className="w-full h-24 object-cover" loading="lazy" />
+                  ) : (
+                    <div className="h-24 flex items-center justify-center text-3xl bg-background">{item.image}</div>
+                  )}
+                  <div className="p-3">
+                    <div className="font-bold text-sm truncate">{item.title}</div>
+                    <div className="text-xs text-muted-foreground truncate">📍 {item.location}</div>
+                    {item.price && <div className="text-sm font-bold text-primary mt-1">Rs. {item.price.toLocaleString()}</div>}
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-gold-dark capitalize mt-1">{item.type}</span>
+                  </div>
                 </motion.div>
               ))}
             </div>

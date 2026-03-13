@@ -5,10 +5,15 @@ import LeafletMap from "@/components/LeafletMap";
 import LankaPayModal from "@/components/LankaPayModal";
 import InquiryModal from "@/components/InquiryModal";
 import TrustBanner from "@/components/TrustBanner";
+import ShareButtons from "@/components/ShareButtons";
+import ReviewSection from "@/components/ReviewSection";
+import ComparisonTool from "@/components/ComparisonTool";
 import { Stay } from "@/types/pearl-hub";
 
+const isUrl = (s: string) => s.startsWith("http");
+
 const StaysPage = () => {
-  const { data, showToast, addRecentlyViewed } = useAppContext();
+  const { data, showToast, addRecentlyViewed, addToCompare, compareItems } = useAppContext();
   const [filter, setFilter] = useState({ type: "all", maxPrice: "", location: "", minRating: "0", amenity: "" });
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [selectedStay, setSelectedStay] = useState<Stay | null>(null);
@@ -33,7 +38,7 @@ const StaysPage = () => {
     return true;
   });
 
-  const mapMarkers = filtered.map(s => ({ lat: s.lat, lng: s.lng, title: s.name, location: s.location, price: s.pricePerNight, emoji: s.image, type: "stay" as const, rating: s.rating }));
+  const mapMarkers = filtered.map(s => ({ lat: s.lat, lng: s.lng, title: s.name, location: s.location, price: s.pricePerNight, emoji: isUrl(s.image) ? "🏨" : s.image, type: "stay" as const, rating: s.rating }));
 
   const roomTypes: Record<string, { label: string; mult: number; desc: string }> = {
     standard: { label: "Standard", mult: 1, desc: "Comfortable room with essential amenities" },
@@ -104,10 +109,16 @@ const StaysPage = () => {
               <motion.div key={stay.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                 onClick={() => { setSelectedStay(stay); setRoomType("standard"); setGuests(2); setSpecialRequests(""); setCheckInTime("14:00"); setCheckOutTime("11:00"); addRecentlyViewed({ id: stay.id, title: stay.name, type: "stay", price: stay.pricePerNight, image: stay.image, location: stay.location }); }}
                 className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
-                <div className="h-40 bg-gradient-to-br from-sapphire/10 to-sapphire/[0.03] flex items-center justify-center text-6xl relative">
-                  {stay.image}
+                <div className="h-40 relative overflow-hidden">
+                  {isUrl(stay.image) ? (
+                    <img src={stay.image} alt={stay.name} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-sapphire/10 to-sapphire/[0.03] flex items-center justify-center text-6xl">{stay.image}</div>
+                  )}
                   {stay.approved && <span className="absolute top-2.5 right-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald/10 text-emerald">✓ STB Approved</span>}
                   {stay.stars > 0 && <span className="absolute top-2.5 left-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-primary/15 text-gold-dark">{stay.stars}⭐</span>}
+                  <button onClick={e => { e.stopPropagation(); addToCompare({ id: stay.id, title: stay.name, itemType: "stay", location: stay.location, price: stay.pricePerNight, priceUnit: "/night", rating: stay.rating, subtype: stay.type, details: `${stay.rooms} rooms • ${stay.stars}⭐`, features: stay.amenities.slice(0,3).join(", ") }); showToast(compareItems.length >= 3 ? "Max 3 items" : "Added to compare", compareItems.length >= 3 ? "warning" : "success"); }}
+                    className="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center text-sm cursor-pointer" title="Compare">📊</button>
                 </div>
                 <div className="p-4">
                   <div className="font-display text-base font-bold mb-1">{stay.name}</div>
@@ -137,16 +148,25 @@ const StaysPage = () => {
           <div className="fixed inset-0 bg-obsidian/75 z-[1000] flex items-center justify-center p-5" onClick={() => setSelectedStay(null)}>
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="bg-card rounded-2xl max-w-[900px] w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="bg-gradient-to-br from-sapphire to-sapphire/70 px-7 py-6 flex justify-between">
-                <div>
-                  <h2 className="text-pearl text-xl mb-1">{selectedStay.image} {selectedStay.name}</h2>
-                  <p className="text-pearl/70 text-sm">📍 {selectedStay.location} • ★ {selectedStay.rating} • {selectedStay.rooms} rooms</p>
+              <div className="relative h-48 overflow-hidden rounded-t-2xl">
+                {isUrl(selectedStay.image) ? (
+                  <img src={selectedStay.image} alt={selectedStay.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-sapphire to-sapphire/70 flex items-center justify-center text-6xl">{selectedStay.image}</div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-obsidian/80 to-transparent" />
+                <div className="absolute bottom-4 left-7 right-7 flex justify-between items-end">
+                  <div>
+                    <h2 className="text-pearl text-xl mb-1">{selectedStay.name}</h2>
+                    <p className="text-pearl/70 text-sm">📍 {selectedStay.location} • ★ {selectedStay.rating} • {selectedStay.rooms} rooms</p>
+                  </div>
+                  <button onClick={() => setSelectedStay(null)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer">✕</button>
                 </div>
-                <button onClick={() => setSelectedStay(null)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer">✕</button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-[1fr_320px]">
                 <div className="p-7 border-r border-border">
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">{selectedStay.description}</p>
+                  <ShareButtons title={selectedStay.name} description={`Rs. ${selectedStay.pricePerNight.toLocaleString()}/night – ${selectedStay.location}`} />
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4 mt-3">{selectedStay.description}</p>
                   <div className="flex gap-2 flex-wrap mb-5">{selectedStay.amenities.map(a => <span key={a} className="inline-block px-2 py-0.5 bg-pearl-dark rounded text-[11px] font-medium text-muted-foreground">{a}</span>)}</div>
 
                   <h4 className="mb-3 text-sm font-bold">Room Types</h4>
@@ -160,7 +180,8 @@ const StaysPage = () => {
                       </div>
                     ))}
                   </div>
-                  <LeafletMap markers={[{ lat: selectedStay.lat, lng: selectedStay.lng, title: selectedStay.name, location: selectedStay.location, price: selectedStay.pricePerNight, emoji: selectedStay.image, type: "stay" }]} center={[selectedStay.lat, selectedStay.lng]} zoom={14} height="200px" />
+                  <LeafletMap markers={[{ lat: selectedStay.lat, lng: selectedStay.lng, title: selectedStay.name, location: selectedStay.location, price: selectedStay.pricePerNight, emoji: isUrl(selectedStay.image) ? "🏨" : selectedStay.image, type: "stay" }]} center={[selectedStay.lat, selectedStay.lng]} zoom={14} height="200px" />
+                  <ReviewSection listingId={selectedStay.id} listingType="stay" />
                 </div>
                 <div className="p-6">
                   <h4 className="mb-4 text-sm font-bold">Book Your Stay</h4>
@@ -239,6 +260,8 @@ const StaysPage = () => {
           listingTitle={selectedStay.name}
         />
       )}
+
+      <ComparisonTool />
     </div>
   );
 };
