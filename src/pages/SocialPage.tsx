@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
+import ShareButtons from "@/components/ShareButtons";
 
 interface SocialPost {
   id: string;
@@ -143,10 +144,10 @@ const SocialPage = () => {
                         </div>
                       </div>
                       <p className="text-sm leading-relaxed mb-4">{post.content}</p>
-                      <div className="flex items-center gap-4 pt-3 border-t border-border">
+                      <div className="flex items-center gap-4 pt-3 border-t border-border flex-wrap">
                         <button onClick={() => handleLike(post.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-ruby transition-colors">❤️ {post.likes}</button>
                         <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-sapphire transition-colors">💬 {post.comments}</button>
-                        <button onClick={() => handleShare(post.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-emerald transition-colors">🔗 {post.shares}</button>
+                        <ShareButtons title={post.content.slice(0, 60)} description={post.content} />
                         <button className="ml-auto text-xs text-muted-foreground hover:text-foreground">⚑ Report</button>
                       </div>
                     </motion.div>

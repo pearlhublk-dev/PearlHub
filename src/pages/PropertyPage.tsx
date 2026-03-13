@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAppContext } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import LeafletMap from "@/components/LeafletMap";
 import LankaPayModal from "@/components/LankaPayModal";
 import { Property } from "@/types/pearl-hub";
@@ -7,6 +8,7 @@ import InquiryModal from "@/components/InquiryModal";
 import TrustBanner from "@/components/TrustBanner";
 import ShareButtons from "@/components/ShareButtons";
 import ComparisonTool from "@/components/ComparisonTool";
+import ImageUpload from "@/components/ImageUpload";
 
 const formatPrice = (p: number) => p >= 1000000 ? `Rs. ${(p / 1000000).toFixed(1)}M` : `Rs. ${p.toLocaleString()}`;
 
@@ -35,7 +37,8 @@ const PropertyPage = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [paymentContext, setPaymentContext] = useState<{ amount: number; description: string; onSuccess: () => void }>({ amount: 0, description: "", onSuccess: () => {} });
   const [showInquiry, setShowInquiry] = useState(false);
-
+  const [listingImages, setListingImages] = useState<string[]>([]);
+  const [wantedImages, setWantedImages] = useState<string[]>([]);
   const [wantedListings] = useState<WantedListing[]>([
     { id: "W001", title: "Looking for 3BR House in Colombo 5/7", location: "Colombo 05 or 07", budget: "Rs. 50M – 70M", beds: 3, area: "2,500+ sq.ft", description: "Family looking for a spacious 3-bedroom house in a quiet residential area with parking and garden.", contact: "Verified Buyer", date: "2024-03-10" },
     { id: "W002", title: "Commercial Space Needed – Pettah", location: "Colombo 11 (Pettah)", budget: "Rs. 150K – 250K /mo", beds: 0, area: "1,000+ sq.ft", description: "Retail business needs ground-floor commercial space with good foot traffic.", contact: "Verified Buyer", date: "2024-03-08" },
@@ -70,9 +73,7 @@ const PropertyPage = () => {
               <p className="text-pearl/75 mt-1.5">Sales • Rentals • Leases across Sri Lanka</p>
             </div>
             <div className="flex gap-2">
-              {(currentUser === "owner" || currentUser === "broker") && (
-                <button onClick={() => setShowListingModal(true)} className="bg-primary hover:bg-gold-light text-primary-foreground px-7 py-3 rounded-lg font-bold transition-all">➕ List Property</button>
-              )}
+              <button onClick={() => setShowListingModal(true)} className="bg-primary hover:bg-gold-light text-primary-foreground px-7 py-3 rounded-lg font-bold transition-all">➕ List Property</button>
             </div>
           </div>
         </div>
@@ -348,6 +349,7 @@ const PropertyPage = () => {
               <div className="mb-4"><label className="block text-xs font-semibold mb-1">Description</label>
                 <textarea rows={3} placeholder="Describe the property…" className="w-full rounded-md border border-input px-3 py-2 text-sm resize-y" />
               </div>
+              <ImageUpload bucket="listings" maxFiles={5} onUpload={setListingImages} label="Property Photos" className="mb-4" />
               <button onClick={() => {
                 initiatePayment(
                   currentUser === "owner" ? 1000 : 23000,
@@ -387,6 +389,7 @@ const PropertyPage = () => {
               </div>
               <div className="mb-3"><label className="block text-xs font-semibold mb-1">Description</label>
                 <textarea rows={3} placeholder="Describe what you're looking for…" className="w-full rounded-md border border-input px-3 py-2 text-sm resize-y" /></div>
+              <ImageUpload bucket="listings" maxFiles={1} onUpload={setWantedImages} label="Reference Photo (optional)" className="mb-3" />
               <div className="mb-4"><label className="block text-xs font-semibold mb-1">Contact Number *</label>
                 <input placeholder="+94 7X XXX XXXX" className="w-full rounded-md border border-input px-3 py-2 text-sm" /></div>
               <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mb-4 text-xs text-muted-foreground">

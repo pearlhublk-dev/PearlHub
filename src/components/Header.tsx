@@ -75,6 +75,11 @@ const Header = () => {
         {/* Mobile menu button */}
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden text-pearl text-xl ml-auto">☰</button>
 
+        {/* Global Search */}
+        <form onSubmit={e => { e.preventDefault(); const q = (e.currentTarget.elements.namedItem("q") as HTMLInputElement)?.value; if (q?.trim()) navigate(`/search?q=${encodeURIComponent(q.trim())}`); }} className="hidden md:flex items-center">
+          <input name="q" placeholder="🔍 Search…" className="bg-white/[0.08] border border-white/15 text-pearl placeholder:text-fog rounded-md px-3 py-1.5 text-xs w-40 focus:w-56 transition-all outline-none focus:border-primary/40" />
+        </form>
+
         {/* Controls */}
         <div className="hidden md:flex items-center gap-2.5 flex-shrink-0">
           {/* Notifications */}
@@ -138,6 +143,10 @@ const Header = () => {
       {mobileMenuOpen && (
         <div className="md:hidden bg-obsidian border-t border-primary/20 pb-4">
           <div className="container flex flex-col gap-2 pt-2">
+            {/* Mobile search */}
+            <form onSubmit={e => { e.preventDefault(); const q = (e.currentTarget.elements.namedItem("mq") as HTMLInputElement)?.value; if (q?.trim()) { navigate(`/search?q=${encodeURIComponent(q.trim())}`); setMobileMenuOpen(false); } }} className="mb-2">
+              <input name="mq" placeholder="🔍 Search…" className="w-full bg-white/[0.08] border border-white/15 text-pearl placeholder:text-fog rounded-md px-3 py-2 text-sm outline-none" />
+            </form>
             {navItems.map(item => (
               <button key={item.path} onClick={() => { navigate(item.path); setMobileMenuOpen(false); }}
                 className={`px-4 py-2.5 rounded-md text-sm font-medium text-left flex items-center gap-2 ${
@@ -146,7 +155,16 @@ const Header = () => {
                 {item.icon} {item.label}
               </button>
             ))}
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2 mt-2 flex-wrap">
+              {/* Dark mode toggle in mobile */}
+              <button onClick={toggleDarkMode} className="bg-white/[0.08] border border-white/15 text-pearl rounded-md p-2 text-sm" title={darkMode ? "Light mode" : "Dark mode"}>
+                {darkMode ? "☀️" : "🌙"}
+              </button>
+              {/* Notification bell in mobile */}
+              <button onClick={() => setShowNotifications(!showNotifications)} className="relative bg-white/[0.08] border border-white/15 text-pearl rounded-md p-2 text-sm">
+                🔔
+                {unreadCount > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-ruby text-[10px] font-bold text-pearl rounded-full flex items-center justify-center">{unreadCount}</span>}
+              </button>
               <select value={currentUser} onChange={e => setCurrentUser(e.target.value as UserRole)}
                 className="flex-1 bg-white/[0.08] border border-white/15 text-pearl rounded-md px-2 py-2 text-xs">
                 <option value="customer">👤 Customer</option>
