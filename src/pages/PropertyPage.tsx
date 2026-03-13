@@ -70,9 +70,7 @@ const PropertyPage = () => {
               <p className="text-pearl/75 mt-1.5">Sales • Rentals • Leases across Sri Lanka</p>
             </div>
             <div className="flex gap-2">
-              {(currentUser === "owner" || currentUser === "broker") && (
-                <button onClick={() => setShowListingModal(true)} className="bg-primary hover:bg-gold-light text-primary-foreground px-7 py-3 rounded-lg font-bold transition-all">➕ List Property</button>
-              )}
+              <button onClick={() => setShowListingModal(true)} className="bg-primary hover:bg-gold-light text-primary-foreground px-7 py-3 rounded-lg font-bold transition-all">➕ List Property</button>
             </div>
           </div>
         </div>
