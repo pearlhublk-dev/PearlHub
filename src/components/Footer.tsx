@@ -27,7 +27,7 @@ const Footer = () => {
           </div>
           {[
             { title: "Services", links: [{ label: "Property Listings", path: "/property" }, { label: "Stays & Hotels", path: "/stays" }, { label: "Vehicle Rental", path: "/vehicles" }, { label: "Event Booking", path: "/events" }, { label: "Social Hub", path: "/social" }] },
-            { title: "For Business", links: [{ label: "Owner Listing", path: "/dashboard" }, { label: "Broker Membership", path: "/dashboard" }, { label: "Stay Providers", path: "/dashboard" }, { label: "Event Organizers", path: "/dashboard" }, { label: "SME Directory", path: "/social" }] },
+            { title: "For Business", links: [{ label: "Owner Listing", path: "/for-business?tab=owner" }, { label: "Broker Membership", path: "/for-business?tab=broker" }, { label: "Stay Providers", path: "/for-business?tab=stay_provider" }, { label: "Event Organizers", path: "/for-business?tab=event_organizer" }, { label: "SME Directory", path: "/for-business?tab=sme" }] },
             { title: "Company", links: [{ label: "About Us", path: "/about" }, { label: "Contact Us", path: "/contact" }, { label: "Careers", path: "/about" }, { label: "Press", path: "/about" }] },
             { title: "Legal", links: [{ label: "Terms & Conditions", path: "/terms" }, { label: "Privacy Policy", path: "/privacy" }, { label: "Vehicle Rental T&C", path: "/terms" }, { label: "Cookie Policy", path: "/terms" }] },
           ].map(col => (

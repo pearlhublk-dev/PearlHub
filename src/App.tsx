@@ -57,6 +57,7 @@ const AppLayout = () => (
         <Route path="/social" element={<SocialPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<TermsPage />} />
+        <Route path="/for-business" element={<ForBusinessPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

@@ -393,6 +393,16 @@ const PropertyPage = () => {
         description={paymentContext.description}
         onSuccess={paymentContext.onSuccess}
       />
+
+      {selectedProp && (
+        <InquiryModal
+          open={showInquiry}
+          onClose={() => setShowInquiry(false)}
+          listingId={selectedProp.id}
+          listingType="property"
+          listingTitle={selectedProp.title}
+        />
+      )}
     </div>
   );
 };
