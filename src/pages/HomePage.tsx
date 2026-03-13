@@ -7,7 +7,7 @@ import LeafletMap from "@/components/LeafletMap";
 import heroPropertyImg from "@/assets/hero-property.jpg";
 
 const HomePage = () => {
-  const { data } = useAppContext();
+  const { data, recentlyViewed } = useAppContext();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
