@@ -26,6 +26,7 @@ const DashboardPage = () => {
       { id: "overview", label: "Overview", icon: "📊" },
       { id: "bookings", label: "My Bookings", icon: "📅" },
       { id: "promo", label: "Promo Codes", icon: "🎁" },
+      { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "profile", label: "My Profile", icon: "👤" },
     ],
     owner: [
