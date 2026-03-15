@@ -8,6 +8,7 @@ import InquiryModal from "@/components/InquiryModal";
 import TrustBanner from "@/components/TrustBanner";
 import ShareButtons from "@/components/ShareButtons";
 import ReviewSection from "@/components/ReviewSection";
+import RealTimeTracker from "@/components/RealTimeTracker";
 import { Vehicle } from "@/types/pearl-hub";
 
 const isUrl = (s: string) => s.startsWith("http");
@@ -22,6 +23,8 @@ const VehiclesPage = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [showInquiry, setShowInquiry] = useState(false);
+  const [showTracker, setShowTracker] = useState(false);
+  const [trackerVehicle, setTrackerVehicle] = useState<Vehicle | null>(null);
 
   const vehicleTypes = [{ id: "all", label: "All" }, { id: "car", label: "Cars" }, { id: "van", label: "Vans" }, { id: "jeep", label: "Jeeps" }, { id: "bus", label: "Buses" }, { id: "luxury_coach", label: "Luxury Coach" }];
 
@@ -43,6 +46,17 @@ const VehiclesPage = () => {
   const driverTotal = form.driver === "yes" && selected?.driver !== "included" ? driverRate * days : 0;
   const grandTotal = baseTotal + driverTotal;
 
+  const handleBookingSuccess = () => {
+    showToast("🚗 Vehicle booked successfully! Confirmation sent to your email.", "success");
+    const bookedVehicle = selected;
+    setSelected(null);
+    setShowPayment(false);
+    if (bookedVehicle) {
+      setTrackerVehicle(bookedVehicle);
+      setShowTracker(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-gradient-to-br from-ruby to-ruby/70 py-10">
@@ -52,7 +66,7 @@ const VehiclesPage = () => {
             <h1 className="text-pearl text-3xl">Rent a Vehicle</h1>
             <p className="text-pearl/75 mt-1.5">Cars • Vans • Jeeps • Buses • Luxury Coaches</p>
           </div>
-          <button onClick={() => navigate("/terms")} className="bg-white/10 border border-white/20 text-pearl px-4 py-2 rounded-lg text-xs font-bold">📄 Supplier T&C</button>
+          <button onClick={() => navigate("/terms")} className="bg-white/10 backdrop-blur-sm border border-white/20 text-pearl px-4 py-2 rounded-lg text-xs font-bold hover:bg-white/20 transition-all">📄 Supplier T&C</button>
         </div>
       </div>
       <TrustBanner stats={[
@@ -88,15 +102,15 @@ const VehiclesPage = () => {
             {filtered.map((v, i) => (
               <motion.div key={v.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                 onClick={() => { setSelected(v); setForm({ startDate: "", endDate: "", pickupTime: "09:00", returnTime: "09:00", driver: v.driver === "included" ? "yes" : "no", agreedToTerms: false }); addRecentlyViewed({ id: v.id, title: `${v.make} ${v.model}`, type: "vehicle", price: v.price, image: v.image, location: v.location }); }}
-                className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
+                className="bg-card/80 backdrop-blur-sm rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer border border-border">
                 <div className="h-36 relative overflow-hidden">
                   {isUrl(v.image) ? (
                     <img src={v.image} alt={`${v.make} ${v.model}`} className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-ruby/10 to-ruby/[0.03] flex items-center justify-center text-5xl">{v.image}</div>
                   )}
-                  <span className="absolute top-2.5 left-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-ruby/10 text-ruby capitalize">{v.type.replace("_", " ")}</span>
-                  <span className={`absolute top-2.5 right-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${v.driver === "included" ? "bg-emerald/10 text-emerald" : "bg-pearl-dark text-muted-foreground"}`}>
+                  <span className="absolute top-2.5 left-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-ruby/10 text-ruby capitalize backdrop-blur-sm">{v.type.replace("_", " ")}</span>
+                  <span className={`absolute top-2.5 right-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold backdrop-blur-sm ${v.driver === "included" ? "bg-emerald/10 text-emerald" : "bg-pearl-dark text-muted-foreground"}`}>
                     {v.driver === "included" ? "👨‍✈️ Driver Included" : "🔑 Self Drive"}
                   </span>
                 </div>
@@ -123,9 +137,9 @@ const VehiclesPage = () => {
       {/* Booking Modal */}
       <AnimatePresence>
         {selected && (
-          <div className="fixed inset-0 bg-obsidian/75 z-[1000] flex items-center justify-center p-5" onClick={() => setSelected(null)}>
+          <div className="fixed inset-0 bg-obsidian/75 backdrop-blur-sm z-[1000] flex items-center justify-center p-5" onClick={() => setSelected(null)}>
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-card rounded-2xl max-w-[700px] w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              className="bg-card/95 backdrop-blur-md rounded-2xl max-w-[700px] w-full max-h-[90vh] overflow-y-auto border border-border/50 shadow-2xl" onClick={e => e.stopPropagation()}>
               <div className="relative h-40 overflow-hidden rounded-t-2xl">
                 {isUrl(selected.image) ? (
                   <img src={selected.image} alt={`${selected.make} ${selected.model}`} className="w-full h-full object-cover" />
@@ -138,7 +152,7 @@ const VehiclesPage = () => {
                     <h2 className="text-pearl text-xl mb-1">{selected.make} {selected.model}</h2>
                     <p className="text-pearl/70 text-sm">📍 {selected.location} • {selected.year} • {selected.seats} seats • ★ {selected.rating}</p>
                   </div>
-                  <button onClick={() => setSelected(null)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer">✕</button>
+                  <button onClick={() => setSelected(null)} className="bg-white/15 backdrop-blur-sm border-none text-pearl w-9 h-9 rounded-full cursor-pointer hover:bg-white/25 transition-all">✕</button>
                 </div>
               </div>
               <div className="p-7">
@@ -149,7 +163,7 @@ const VehiclesPage = () => {
                   <label className="block text-xs font-semibold mb-2">Driver Option</label>
                   <div className="flex gap-2">
                     {selected.driver === "included" ? (
-                      <div className="flex-1 p-3 border-2 border-emerald bg-emerald/5 rounded-lg text-center">
+                      <div className="flex-1 p-3 border-2 border-emerald bg-emerald/5 backdrop-blur-sm rounded-lg text-center">
                         <div className="font-bold text-sm text-emerald">👨‍✈️ Driver Included</div>
                         <div className="text-xs text-muted-foreground">Professional driver provided at no extra cost</div>
                       </div>
@@ -194,7 +208,7 @@ const VehiclesPage = () => {
                 </div>
 
                 {days > 0 && (
-                  <div className="bg-background rounded-lg p-4 mb-4">
+                  <div className="bg-background/80 backdrop-blur-sm rounded-lg p-4 mb-4 border border-border/50">
                     <h4 className="text-sm font-bold mb-3">📊 Trip Summary</h4>
                     <div className="grid grid-cols-3 gap-3 mb-3">
                       <div className="text-center p-2 bg-card rounded-lg">
@@ -223,6 +237,17 @@ const VehiclesPage = () => {
                   </div>
                 )}
 
+                {/* Location Map */}
+                <div className="mb-4">
+                  <h4 className="text-sm font-bold mb-2">📍 Pickup Location</h4>
+                  <LeafletMap
+                    markers={[{ lat: selected.lat, lng: selected.lng, title: `${selected.make} ${selected.model}`, location: selected.location, emoji: "🚗", type: "vehicle" }]}
+                    center={[selected.lat, selected.lng]}
+                    zoom={14}
+                    height="200px"
+                  />
+                </div>
+
                 <label className="flex items-start gap-2 text-xs text-muted-foreground mb-4 cursor-pointer">
                   <input type="checkbox" checked={form.agreedToTerms} onChange={e => setForm({...form, agreedToTerms: e.target.checked})} className="mt-0.5 rounded" />
                   <span>I agree to the <button type="button" onClick={() => setShowTerms(true)} className="text-primary font-semibold underline">Vehicle Rental Terms & Conditions</button> including the KM limits, excess charges, and cancellation policy.</span>
@@ -244,8 +269,8 @@ const VehiclesPage = () => {
       </AnimatePresence>
 
       {showTerms && (
-        <div className="fixed inset-0 bg-obsidian/75 z-[1100] flex items-center justify-center p-5" onClick={() => setShowTerms(false)}>
-          <div className="bg-card rounded-2xl max-w-[600px] w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-obsidian/75 backdrop-blur-sm z-[1100] flex items-center justify-center p-5" onClick={() => setShowTerms(false)}>
+          <div className="bg-card/95 backdrop-blur-md rounded-2xl max-w-[600px] w-full max-h-[80vh] overflow-y-auto border border-border/50" onClick={e => e.stopPropagation()}>
             <div className="bg-ruby px-7 py-5 flex justify-between items-center">
               <h3 className="text-pearl text-lg font-bold">🚗 Vehicle Rental T&C</h3>
               <button onClick={() => setShowTerms(false)} className="bg-white/15 text-pearl w-8 h-8 rounded-full">✕</button>
@@ -272,7 +297,7 @@ const VehiclesPage = () => {
         onClose={() => setShowPayment(false)}
         amount={grandTotal}
         description={`Vehicle Rental: ${selected?.make} ${selected?.model} – ${days} days`}
-        onSuccess={() => { showToast("🚗 Vehicle booked successfully! Confirmation sent to your email.", "success"); setSelected(null); setShowPayment(false); }}
+        onSuccess={handleBookingSuccess}
       />
 
       {selected && (
@@ -282,6 +307,14 @@ const VehiclesPage = () => {
           listingId={selected.id}
           listingType="vehicle"
           listingTitle={`${selected.make} ${selected.model}`}
+        />
+      )}
+
+      {showTracker && trackerVehicle && (
+        <RealTimeTracker
+          vehicleName={`${trackerVehicle.make} ${trackerVehicle.model}`}
+          startLocation={{ lat: trackerVehicle.lat, lng: trackerVehicle.lng, name: trackerVehicle.location }}
+          onClose={() => { setShowTracker(false); setTrackerVehicle(null); }}
         />
       )}
     </div>

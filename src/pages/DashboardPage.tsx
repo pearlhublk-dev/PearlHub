@@ -26,6 +26,7 @@ const DashboardPage = () => {
       { id: "overview", label: "Overview", icon: "📊" },
       { id: "bookings", label: "My Bookings", icon: "📅" },
       { id: "promo", label: "Promo Codes", icon: "🎁" },
+      { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "profile", label: "My Profile", icon: "👤" },
     ],
     owner: [
@@ -38,6 +39,7 @@ const DashboardPage = () => {
       { id: "promos", label: "Promo Codes", icon: "🎁" },
       { id: "revenue", label: "Revenue", icon: "💰" },
       { id: "terms", label: "Terms & Conditions", icon: "📄" },
+      { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
     broker: [
@@ -50,6 +52,7 @@ const DashboardPage = () => {
       { id: "membership", label: "Membership", icon: "👑" },
       { id: "revenue", label: "Revenue", icon: "💰" },
       { id: "terms", label: "Terms & Conditions", icon: "📄" },
+      { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
     admin: [
@@ -60,6 +63,7 @@ const DashboardPage = () => {
       { id: "all_listings", label: "All Listings", icon: "🏘️" },
       { id: "transactions", label: "Transactions", icon: "💳" },
       { id: "commissions", label: "Commissions", icon: "💹" },
+      { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "settings", label: "Settings", icon: "⚙️" },
     ],
     stay_provider: [
@@ -70,6 +74,7 @@ const DashboardPage = () => {
       { id: "rates", label: "Rate Management", icon: "⚙️" },
       { id: "pricing", label: "Fees & Pricing", icon: "💳" },
       { id: "revenue", label: "Revenue", icon: "💰" },
+      { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
     event_organizer: [
@@ -80,12 +85,14 @@ const DashboardPage = () => {
       { id: "rates", label: "Rate Management", icon: "⚙️" },
       { id: "pricing", label: "Fees & Pricing", icon: "💳" },
       { id: "revenue", label: "Revenue", icon: "💰" },
+      { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
     sme: [
       { id: "overview", label: "Overview", icon: "📊" },
       { id: "listings", label: "My Listings", icon: "🏪" },
       { id: "enquiries", label: "Enquiries", icon: "📩" },
+      { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
   };
@@ -513,17 +520,151 @@ const DashboardPage = () => {
             <h2 className="text-2xl mb-6">All Platform Listings</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {data.properties.map(p => (
-                <div key={p.id} className="bg-card rounded-xl p-4 border border-border">
+                <div key={p.id} className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border">
                   <div className="flex items-center gap-3 mb-2"><span className="text-2xl">{p.image}</span><div><div className="font-bold text-sm">{p.title}</div><div className="text-xs text-muted-foreground">📍 {p.location}</div></div></div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center mb-3">
                     <span className="font-bold text-emerald text-sm">Rs. {p.price.toLocaleString()}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">👁 {p.views}</span>
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald/10 text-emerald">Active</span>
                     </div>
                   </div>
+                  {currentUser === "admin" && (
+                    <div className="flex gap-2 pt-2 border-t border-border">
+                      <button onClick={() => showToast(`✅ "${p.title}" force approved by SuperAdmin.`, "success")}
+                        className="flex-1 px-2 py-1.5 rounded-md text-[11px] font-bold bg-emerald/10 text-emerald border border-emerald/20 hover:bg-emerald/20 transition-all">
+                        ⚡ Force Approve
+                      </button>
+                      <button onClick={() => { if (window.confirm(`Permanently delete "${p.title}"? This action cannot be undone.`)) showToast(`🗑️ "${p.title}" permanently deleted.`, "success"); }}
+                        className="flex-1 px-2 py-1.5 rounded-md text-[11px] font-bold bg-ruby/10 text-ruby border border-ruby/20 hover:bg-ruby/20 transition-all">
+                        🗑️ Hard Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {activeSection === "compliance" && (
+          <div className="max-w-3xl">
+            <h2 className="text-2xl mb-2">📋 Compliance & Agreements</h2>
+            <p className="text-muted-foreground mb-6">Review and finalize your master service agreement based on your account type.</p>
+
+            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-6 border border-border mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-2xl">📋</div>
+                <div>
+                  <h3 className="font-bold text-base">Master Service Agreement</h3>
+                  <p className="text-xs text-muted-foreground capitalize">{currentUser.replace("_", " ")} Account • Pearl Hub Platform</p>
+                </div>
+                <span className="ml-auto inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-primary/15 text-gold-dark">Pending Signature</span>
+              </div>
+
+              <div className="bg-background/80 backdrop-blur-sm rounded-lg p-5 border border-border/50 text-sm text-muted-foreground space-y-3 leading-relaxed mb-5 max-h-[400px] overflow-y-auto">
+                <h4 className="text-foreground font-bold">PEARL HUB — MASTER SERVICE AGREEMENT</h4>
+                <p className="text-xs">Effective Date: {new Date().toLocaleDateString()} | Agreement ID: PH-MSA-{Math.random().toString(36).substr(2, 8).toUpperCase()}</p>
+
+                <p><strong className="text-foreground">1. Parties.</strong> This Agreement is between Pearl Hub (Pvt) Ltd ("Platform") and the undersigned ("{currentUser.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}") collectively referred to as the "Parties."</p>
+
+                {currentUser === "customer" && (
+                  <>
+                    <p><strong className="text-foreground">2. Service Scope.</strong> Platform provides marketplace access for property browsing, accommodation booking, vehicle rental, and event ticketing across Sri Lanka.</p>
+                    <p><strong className="text-foreground">3. User Obligations.</strong> Customer agrees to provide accurate personal information, comply with booking terms, and make timely payments via LankaPay.</p>
+                    <p><strong className="text-foreground">4. Cancellation Policy.</strong> Cancellation terms are governed by individual listing policies. Refunds processed within 7-14 business days.</p>
+                    <p><strong className="text-foreground">5. Promo Codes.</strong> Buyer discount (0.5%) applies only to owner-listed properties via valid promo code redemption.</p>
+                  </>
+                )}
+                {currentUser === "owner" && (
+                  <>
+                    <p><strong className="text-foreground">2. Listing Terms.</strong> Owner pays Rs. 1,000 flat fee per property listing. Sale commission of 2.0% applies upon completed transactions.</p>
+                    <p><strong className="text-foreground">3. Verification.</strong> Owner must provide valid NIC, property deed documentation, and proof of ownership before listing activation.</p>
+                    <p><strong className="text-foreground">4. Revenue Share.</strong> Platform retains 8.5% commission on stay bookings. Vehicle listings charged at Rs. 6,500/month per vehicle.</p>
+                    <p><strong className="text-foreground">5. Compliance.</strong> Owner warrants all listings are accurate, not misleading, and comply with Sri Lankan property law.</p>
+                  </>
+                )}
+                {currentUser === "broker" && (
+                  <>
+                    <p><strong className="text-foreground">2. Membership.</strong> Broker membership is Rs. 23,000/month for up to 65 active listings. No sale commission charged.</p>
+                    <p><strong className="text-foreground">3. Owner Consent.</strong> All broker listings require documented property owner consent. Fraudulent listings result in immediate termination.</p>
+                    <p><strong className="text-foreground">4. Enterprise Verification.</strong> Broker must provide business registration certificate and NIC of authorized representative.</p>
+                    <p><strong className="text-foreground">5. Buyer Discount.</strong> NOT applicable on broker-listed properties. Only owner-listed properties qualify for buyer cashback.</p>
+                  </>
+                )}
+                {currentUser === "stay_provider" && (
+                  <>
+                    <p><strong className="text-foreground">2. Commission.</strong> Platform retains 8.5% flat commission on all booking totals (excluding government taxes).</p>
+                    <p><strong className="text-foreground">3. STB Compliance.</strong> Stay provider must maintain valid Sri Lanka Tourism Board (STB) registration and display certification.</p>
+                    <p><strong className="text-foreground">4. Standards.</strong> All accommodations must meet minimum safety, cleanliness, and guest service standards as defined by Pearl Hub.</p>
+                    <p><strong className="text-foreground">5. Availability.</strong> Provider must keep availability calendars updated. Overbooking penalties apply.</p>
+                  </>
+                )}
+                {currentUser === "event_organizer" && (
+                  <>
+                    <p><strong className="text-foreground">2. Ticketing.</strong> Platform charges 8.5% commission per ticket sold. Organizer sets ticket prices and categories.</p>
+                    <p><strong className="text-foreground">3. Event Compliance.</strong> Organizer must obtain all necessary permits, licenses, and insurance for events.</p>
+                    <p><strong className="text-foreground">4. Cancellation.</strong> Event cancellations require 48hrs notice. Full refunds must be processed to ticket holders.</p>
+                    <p><strong className="text-foreground">5. Safety.</strong> Organizer assumes full liability for attendee safety and venue compliance.</p>
+                  </>
+                )}
+                {currentUser === "sme" && (
+                  <>
+                    <p><strong className="text-foreground">2. Directory Listing.</strong> SME listing plans: Basic (Rs. 1,500/mo), Pro (Rs. 2,500/mo), Premium (Rs. 5,000/mo).</p>
+                    <p><strong className="text-foreground">3. Business Verification.</strong> SME must provide business registration and NIC for profile verification.</p>
+                    <p><strong className="text-foreground">4. Content.</strong> All business descriptions and promotions must be accurate and not misleading.</p>
+                    <p><strong className="text-foreground">5. Community Standards.</strong> SME agrees to maintain professional conduct on the Social Hub.</p>
+                  </>
+                )}
+                {currentUser === "admin" && (
+                  <>
+                    <p><strong className="text-foreground">2. Platform Governance.</strong> Admin has full access to all platform data, user management, and listing approvals.</p>
+                    <p><strong className="text-foreground">3. SuperAdmin Powers.</strong> Force Approve and Hard Delete actions bypass standard workflows. All actions are logged.</p>
+                    <p><strong className="text-foreground">4. Data Privacy.</strong> Admin must comply with Sri Lankan data protection regulations (PDPA) when handling user data.</p>
+                    <p><strong className="text-foreground">5. Audit Trail.</strong> All administrative actions are permanently recorded for compliance and dispute resolution.</p>
+                  </>
+                )}
+
+                <p><strong className="text-foreground">6. Dispute Resolution.</strong> Disputes shall be resolved through mediation first, followed by arbitration under Sri Lankan law.</p>
+                <p><strong className="text-foreground">7. Termination.</strong> Either party may terminate with 30 days written notice. Outstanding payments remain due.</p>
+                <p><strong className="text-foreground">8. Governing Law.</strong> This agreement is governed by the laws of the Democratic Socialist Republic of Sri Lanka.</p>
+              </div>
+
+              <div className="flex items-start gap-3 mb-4">
+                <input type="checkbox" id="agree-msa" className="mt-1 rounded" />
+                <label htmlFor="agree-msa" className="text-xs text-muted-foreground cursor-pointer">
+                  I, the undersigned, have read and agree to the terms of this Master Service Agreement. I understand my obligations and the fee structure applicable to my account type.
+                </label>
+              </div>
+
+              <div className="flex gap-3">
+                <button onClick={() => showToast("✅ Master Service Agreement signed and submitted!", "success")}
+                  className="bg-primary hover:bg-gold-light text-primary-foreground px-6 py-2.5 rounded-lg font-bold text-sm transition-all">
+                  ✍️ Sign & Submit Agreement
+                </button>
+                <button className="border border-border text-muted-foreground px-4 py-2.5 rounded-lg text-sm hover:bg-background transition-all">
+                  📥 Download PDF
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-5 border border-border">
+              <h3 className="font-bold text-sm mb-3">📜 Compliance Status</h3>
+              <div className="space-y-2.5">
+                {[
+                  { item: "NIC Verification", status: user ? "verified" : "pending" },
+                  { item: "Master Service Agreement", status: "pending" },
+                  { item: "Payment Method Setup", status: "verified" },
+                  { item: currentUser === "broker" ? "Business Registration" : currentUser === "stay_provider" ? "STB Registration" : "Account Verification", status: "pending" },
+                ].map(c => (
+                  <div key={c.item} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                    <span className="text-sm">{c.item}</span>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${c.status === "verified" ? "bg-emerald/10 text-emerald" : "bg-primary/15 text-gold-dark"}`}>
+                      {c.status === "verified" ? "✓ Verified" : "⏳ Pending"}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

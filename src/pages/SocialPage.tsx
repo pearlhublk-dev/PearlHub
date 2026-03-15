@@ -17,6 +17,7 @@ interface SocialPost {
   type: "status" | "listing" | "tourism" | "ad";
   location?: string;
   verified: boolean;
+  verifiedLabel?: string;
 }
 
 interface BusinessListing {
@@ -33,11 +34,11 @@ interface BusinessListing {
 }
 
 const MOCK_POSTS: SocialPost[] = [
-  { id: "SP1", author: "Kavinda Fernando", avatar: "👨", role: "Local Guide", content: "Just visited the stunning Nine Arches Bridge in Ella! 🌉 A must-see for anyone traveling to the hill country. The morning light is absolutely magical! #SriLankaTourism #Ella", likes: 234, comments: 45, shares: 18, time: "2 hours ago", type: "tourism", location: "Ella, Sri Lanka", verified: true },
-  { id: "SP2", author: "Ceylon Spice Garden", avatar: "🌿", role: "SME Business", content: "🌶️ Fresh organic spices from our garden in Matale! Visit us for authentic Ceylon cinnamon, pepper, and cardamom. Tourist groups welcome with guided tours. Book via Pearl Hub for 10% off!", likes: 89, comments: 12, shares: 7, time: "4 hours ago", type: "listing", location: "Matale", verified: true },
+  { id: "SP1", author: "Kavinda Fernando", avatar: "👨", role: "Local Guide", content: "Just visited the stunning Nine Arches Bridge in Ella! 🌉 A must-see for anyone traveling to the hill country. The morning light is absolutely magical! #SriLankaTourism #Ella", likes: 234, comments: 45, shares: 18, time: "2 hours ago", type: "tourism", location: "Ella, Sri Lanka", verified: true, verifiedLabel: "STB Verified Guide" },
+  { id: "SP2", author: "Ceylon Spice Garden", avatar: "🌿", role: "SME Business", content: "🌶️ Fresh organic spices from our garden in Matale! Visit us for authentic Ceylon cinnamon, pepper, and cardamom. Tourist groups welcome with guided tours. Book via Pearl Hub for 10% off!", likes: 89, comments: 12, shares: 7, time: "4 hours ago", type: "listing", location: "Matale", verified: true, verifiedLabel: "Verified Business" },
   { id: "SP3", author: "Amaya Wijesinghe", avatar: "👩", role: "Traveler", content: "Looking for recommendations for the best seafood restaurants in Negombo! Anyone tried the new place near the beach? 🐟", likes: 56, comments: 23, shares: 2, time: "6 hours ago", type: "status", location: "Negombo", verified: false },
-  { id: "SP4", author: "Visit Sigiriya", avatar: "🏰", role: "Tourism Board", content: "📣 Special entry rates for locals this weekend! Bring your NIC and get 50% off entrance fees to Sigiriya Rock Fortress. Share the pride of our heritage! 🇱🇰", likes: 567, comments: 89, shares: 234, time: "8 hours ago", type: "ad", location: "Sigiriya", verified: true },
-  { id: "SP5", author: "Ravi's Tuk Tuk Tours", avatar: "🛺", role: "SME Business", content: "Explore Galle Fort like never before! 🏰 Custom tuk-tuk tours starting from Rs. 1,500. Sunset tours, food trails, and hidden gems! Listed on Pearl Hub.", likes: 124, comments: 31, shares: 15, time: "12 hours ago", type: "listing", location: "Galle", verified: true },
+  { id: "SP4", author: "Visit Sigiriya", avatar: "🏰", role: "Tourism Board", content: "📣 Special entry rates for locals this weekend! Bring your NIC and get 50% off entrance fees to Sigiriya Rock Fortress. Share the pride of our heritage! 🇱🇰", likes: 567, comments: 89, shares: 234, time: "8 hours ago", type: "ad", location: "Sigiriya", verified: true, verifiedLabel: "Official Tourism Board" },
+  { id: "SP5", author: "Ravi's Tuk Tuk Tours", avatar: "🛺", role: "SME Business", content: "Explore Galle Fort like never before! 🏰 Custom tuk-tuk tours starting from Rs. 1,500. Sunset tours, food trails, and hidden gems! Listed on Pearl Hub.", likes: 124, comments: 31, shares: 15, time: "12 hours ago", type: "listing", location: "Galle", verified: true, verifiedLabel: "Verified SME" },
 ];
 
 const MOCK_BUSINESSES: BusinessListing[] = [
@@ -46,6 +47,12 @@ const MOCK_BUSINESSES: BusinessListing[] = [
   { id: "BL3", name: "Surf Lanka Academy", category: "Sports", image: "🏄", location: "Arugam Bay", rating: 4.9, reviews: 189, description: "Professional surf lessons for all levels in Sri Lanka's surf capital.", featured: false, fee: "Rs. 2,000/mo" },
   { id: "BL4", name: "Heritage Gems & Jewels", category: "Shopping", image: "💎", location: "Ratnapura", rating: 4.7, reviews: 312, description: "Certified Sri Lankan gemstones direct from the City of Gems.", featured: true, fee: "Rs. 3,000/mo" },
 ];
+
+const VerifiedBadge = ({ label }: { label?: string }) => (
+  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald/15 text-emerald border border-emerald/20 backdrop-blur-sm">
+    ✓ {label || "Verified"}
+  </span>
+);
 
 const SocialPage = () => {
   const { showToast } = useAppContext();
@@ -69,10 +76,6 @@ const SocialPage = () => {
   };
 
   const handleLike = (id: string) => setPosts(posts.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p));
-  const handleShare = (id: string) => {
-    setPosts(posts.map(p => p.id === id ? { ...p, shares: p.shares + 1 } : p));
-    showToast("Post shared!", "success");
-  };
 
   const typeColors: Record<string, string> = { status: "bg-sapphire/10 text-sapphire", listing: "bg-emerald/10 text-emerald", tourism: "bg-primary/15 text-gold-dark", ad: "bg-ruby/10 text-ruby" };
 
@@ -80,7 +83,7 @@ const SocialPage = () => {
     <div className="min-h-screen bg-background">
       <div className="py-10" style={{ background: "linear-gradient(135deg, hsl(174 60% 35%), hsl(174 60% 18%))" }}>
         <div className="container">
-          <div className="inline-flex items-center gap-1.5 bg-white/15 text-pearl text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-2">🌐 Social Hub</div>
+          <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-pearl text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-2">🌐 Social Hub</div>
           <h1 className="text-pearl text-3xl">Pearl Hub Community</h1>
           <p className="text-pearl/75 mt-1.5">Connect • Share • Discover • Grow your business</p>
         </div>
@@ -106,7 +109,7 @@ const SocialPage = () => {
           <div>
             {/* Post composer */}
             {(activeTab === "feed" || activeTab === "explore") && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border border-border mb-6">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-card/80 backdrop-blur-sm rounded-xl p-5 border border-border mb-6">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-lg flex-shrink-0">👤</div>
                   <div className="flex-1">
@@ -131,13 +134,13 @@ const SocialPage = () => {
                 <AnimatePresence>
                   {posts.filter(p => activeTab === "tourism" ? p.type === "tourism" || p.type === "ad" : true).map((post, i) => (
                     <motion.div key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                      className="bg-card rounded-xl p-5 border border-border">
+                      className="bg-card/80 backdrop-blur-sm rounded-xl p-5 border border-border hover:shadow-md transition-all">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-lg flex-shrink-0">{post.avatar}</div>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-bold text-sm">{post.author}</span>
-                            {post.verified && <span className="text-xs text-emerald">✓</span>}
+                            {post.verified && <VerifiedBadge label={post.verifiedLabel} />}
                             <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold ${typeColors[post.type]}`}>{post.type}</span>
                           </div>
                           <div className="text-xs text-muted-foreground">{post.role} • {post.time}{post.location ? ` • 📍 ${post.location}` : ""}</div>
@@ -161,10 +164,10 @@ const SocialPage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {MOCK_BUSINESSES.map((biz, i) => (
                   <motion.div key={biz.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                    className="bg-card rounded-xl overflow-hidden border border-border hover:shadow-lg transition-all">
+                    className="bg-card/80 backdrop-blur-sm rounded-xl overflow-hidden border border-border hover:shadow-lg transition-all">
                     <div className="h-28 flex items-center justify-center text-5xl relative" style={{ background: "linear-gradient(135deg, hsl(174 60% 35% / 0.1), transparent)" }}>
                       {biz.image}
-                      {biz.featured && <span className="absolute top-2.5 right-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-gold-dark">⭐ Featured</span>}
+                      {biz.featured && <span className="absolute top-2.5 right-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-gold-dark backdrop-blur-sm">⭐ Featured</span>}
                     </div>
                     <div className="p-4">
                       <div className="flex items-center gap-2 mb-1">
@@ -186,7 +189,7 @@ const SocialPage = () => {
 
           {/* Sidebar */}
           <div className="hidden lg:block">
-            <div className="bg-card rounded-xl p-5 border border-border mb-4">
+            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-5 border border-border mb-4">
               <h4 className="font-bold text-sm mb-3">🔥 Trending Places</h4>
               {["Sigiriya Rock Fortress", "Galle Fort Walk", "Ella Nine Arches", "Yala Safari", "Mirissa Whales"].map((place, i) => (
                 <div key={place} className="flex items-center gap-2.5 py-2 border-b border-border last:border-0">
@@ -197,13 +200,13 @@ const SocialPage = () => {
               ))}
             </div>
 
-            <div className="bg-card rounded-xl p-5 border border-border mb-4">
+            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-5 border border-border mb-4">
               <h4 className="font-bold text-sm mb-3">📍 Location Features</h4>
               <p className="text-xs text-muted-foreground leading-relaxed mb-3">Enable location to discover nearby businesses, events, and tourist attractions.</p>
               <button className="w-full py-2 rounded-lg text-xs font-bold text-pearl" style={{ background: "hsl(174 60% 35%)" }}>📍 Enable Location</button>
             </div>
 
-            <div className="bg-card rounded-xl p-5 border border-border">
+            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-5 border border-border">
               <h4 className="font-bold text-sm mb-3">🛡️ Safety & Trust</h4>
               <div className="space-y-2 text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">✅ Verified business profiles</div>
@@ -218,15 +221,15 @@ const SocialPage = () => {
 
       {/* Business Registration Modal */}
       {showRegister && (
-        <div className="fixed inset-0 bg-obsidian/75 z-[1000] flex items-center justify-center p-5 fade-in" onClick={() => setShowRegister(false)}>
+        <div className="fixed inset-0 bg-obsidian/75 backdrop-blur-sm z-[1000] flex items-center justify-center p-5 fade-in" onClick={() => setShowRegister(false)}>
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="bg-card rounded-2xl max-w-[560px] w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            className="bg-card/95 backdrop-blur-md rounded-2xl max-w-[560px] w-full max-h-[90vh] overflow-y-auto border border-border/50 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="px-7 py-6 flex justify-between" style={{ background: "linear-gradient(135deg, hsl(174 60% 35%), hsl(174 60% 18%))" }}>
               <div>
                 <h2 className="text-pearl text-xl mb-1">🏪 Register Your Business</h2>
                 <p className="text-pearl/70 text-sm">Get discovered by tourists and locals</p>
               </div>
-              <button onClick={() => setShowRegister(false)} className="bg-white/15 border-none text-pearl w-9 h-9 rounded-full cursor-pointer">✕</button>
+              <button onClick={() => setShowRegister(false)} className="bg-white/15 backdrop-blur-sm border-none text-pearl w-9 h-9 rounded-full cursor-pointer hover:bg-white/25 transition-all">✕</button>
             </div>
             <div className="p-7">
               <div className="grid grid-cols-2 gap-3 mb-3">
@@ -238,7 +241,7 @@ const SocialPage = () => {
               <div className="mb-3"><label className="block text-xs font-semibold mb-1">Location *</label><input className="w-full rounded-md border border-input px-3 py-2 text-sm" placeholder="City / Area" /></div>
               <div className="mb-3"><label className="block text-xs font-semibold mb-1">Description</label><textarea rows={3} className="w-full rounded-md border border-input px-3 py-2 text-sm resize-y" /></div>
               <div className="mb-3"><label className="block text-xs font-semibold mb-1">Contact Phone</label><input className="w-full rounded-md border border-input px-3 py-2 text-sm" placeholder="+94 77 123 4567" /></div>
-              <div className="bg-background rounded-lg p-4 mb-4">
+              <div className="bg-background/80 backdrop-blur-sm rounded-lg p-4 mb-4 border border-border/50">
                 <h4 className="text-sm font-bold mb-2">💰 Listing Plans</h4>
                 <div className="grid grid-cols-3 gap-2">
                   {[{ name: "Basic", price: "Rs. 1,500/mo", feat: "Profile + Feed posts" }, { name: "Pro", price: "Rs. 2,500/mo", feat: "Featured + Analytics" }, { name: "Premium", price: "Rs. 5,000/mo", feat: "Ads + Priority listing" }].map(plan => (
