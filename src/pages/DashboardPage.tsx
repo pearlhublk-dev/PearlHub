@@ -92,6 +92,7 @@ const DashboardPage = () => {
       { id: "overview", label: "Overview", icon: "📊" },
       { id: "listings", label: "My Listings", icon: "🏪" },
       { id: "enquiries", label: "Enquiries", icon: "📩" },
+      { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
   };
