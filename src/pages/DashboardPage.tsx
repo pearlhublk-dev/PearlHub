@@ -52,6 +52,7 @@ const DashboardPage = () => {
       { id: "membership", label: "Membership", icon: "👑" },
       { id: "revenue", label: "Revenue", icon: "💰" },
       { id: "terms", label: "Terms & Conditions", icon: "📄" },
+      { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
     admin: [
