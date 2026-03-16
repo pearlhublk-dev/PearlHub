@@ -97,10 +97,18 @@ const StaysPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-gradient-to-br from-sapphire to-sapphire/70 py-10">
-        <div className="container">
-          <div className="inline-flex items-center gap-1.5 bg-white/15 text-pearl text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-2">🏨 Stays & Accommodation</div>
-          <h1 className="text-pearl text-3xl">Find Perfect Accommodation</h1>
-          <p className="text-pearl/75 mt-1.5">Hotels • Villas • Guest Houses • Hostels • Sri Lanka Tourism Board Approved</p>
+        <div className="container flex justify-between items-center flex-wrap gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 bg-white/15 text-pearl text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-2">🏨 Stays & Accommodation</div>
+            <h1 className="text-pearl text-3xl">Find Perfect Accommodation</h1>
+            <p className="text-pearl/75 mt-1.5">Hotels • Villas • Guest Houses • Hostels • Sri Lanka Tourism Board Approved</p>
+          </div>
+          {user && (
+            <button onClick={() => { setEditListing(null); setShowListModal(true); }}
+              className="flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 text-pearl px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-white/25 transition-all">
+              <PlusCircle className="w-4 h-4" /> List a Stay
+            </button>
+          )}
         </div>
       </div>
       <TrustBanner stats={[
