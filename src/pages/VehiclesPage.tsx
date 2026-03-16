@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
@@ -9,13 +9,42 @@ import TrustBanner from "@/components/TrustBanner";
 import ShareButtons from "@/components/ShareButtons";
 import ReviewSection from "@/components/ReviewSection";
 import RealTimeTracker from "@/components/RealTimeTracker";
+import VehicleListingModal, { VehicleListing } from "@/components/VehicleListingModal";
 import { Vehicle } from "@/types/pearl-hub";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { PlusCircle, Pencil, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const isUrl = (s: string) => s.startsWith("http");
 
 const VehiclesPage = () => {
   const { data, showToast, addRecentlyViewed } = useAppContext();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [dbListings, setDbListings] = useState<VehicleListing[]>([]);
+  const [showListModal, setShowListModal] = useState(false);
+  const [editListing, setEditListing] = useState<VehicleListing | null>(null);
+
+  const fetchListings = useCallback(async () => {
+    const { data: rows } = await supabase.from("vehicles_listings").select("*").order("created_at", { ascending: false });
+    if (rows) setDbListings(rows as unknown as VehicleListing[]);
+  }, []);
+
+  useEffect(() => { fetchListings(); }, [fetchListings]);
+
+  const deleteListing = async (id: string) => {
+    await supabase.from("vehicles_listings").delete().eq("id", id);
+    showToast("Listing deleted", "success");
+    fetchListings();
+  };
+
+  const dbAsVehicles: Vehicle[] = dbListings.map(l => ({
+    id: l.id, type: l.type, make: l.make, model: l.model, year: l.year,
+    price: Number(l.price), priceUnit: l.price_unit, seats: l.seats, ac: l.ac,
+    driver: l.driver, location: l.location, lat: Number(l.lat), lng: Number(l.lng),
+    image: l.images?.[0] || "🚗", fuel: l.fuel, rating: 0, trips: 0,
+  }));
   const [filter, setFilter] = useState({ type: "all", driver: "all", location: "" });
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [selected, setSelected] = useState<Vehicle | null>(null);
