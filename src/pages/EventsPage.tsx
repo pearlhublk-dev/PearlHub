@@ -140,6 +140,25 @@ const EventsPage = () => {
                   <span className="text-xs font-bold px-3 py-1.5 rounded-md text-pearl" style={{ background: "hsl(256 57% 29%)" }}>Book Now</span>
                   <button onClick={(e) => { e.stopPropagation(); setSelected(evt); setShowInquiry(true); }}
                     className="text-xs font-bold px-3 py-1.5 rounded-md border border-indigo text-indigo hover:bg-indigo/5">📩</button>
+                  {user && dbListings.some(l => l.id === evt.id && l.user_id === user.id) && (
+                    <>
+                      <button onClick={e => { e.stopPropagation(); setEditListing(dbListings.find(l => l.id === evt.id)!); setShowListModal(true); }}
+                        className="w-7 h-7 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all" title="Edit">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <button onClick={e => e.stopPropagation()} className="w-7 h-7 rounded-full bg-muted flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all" title="Delete">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent onClick={e => e.stopPropagation()}>
+                          <AlertDialogHeader><AlertDialogTitle>Delete this event?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteListing(evt.id)}>Delete</AlertDialogAction></AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
