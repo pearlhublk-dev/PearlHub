@@ -375,6 +375,13 @@ const VehiclesPage = () => {
           onClose={() => { setShowTracker(false); setTrackerVehicle(null); }}
         />
       )}
+
+      <VehicleListingModal
+        open={showListModal}
+        onClose={() => { setShowListModal(false); setEditListing(null); }}
+        onSuccess={() => { fetchListings(); showToast(editListing ? "Vehicle updated!" : "Vehicle published!", "success"); }}
+        editData={editListing}
+      />
     </div>
   );
 };
