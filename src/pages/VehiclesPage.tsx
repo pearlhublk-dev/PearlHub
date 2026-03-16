@@ -97,7 +97,15 @@ const VehiclesPage = () => {
             <h1 className="text-pearl text-3xl">Rent a Vehicle</h1>
             <p className="text-pearl/75 mt-1.5">Cars • Vans • Jeeps • Buses • Luxury Coaches</p>
           </div>
-          <button onClick={() => navigate("/terms")} className="bg-white/10 backdrop-blur-sm border border-white/20 text-pearl px-4 py-2 rounded-lg text-xs font-bold hover:bg-white/20 transition-all">📄 Supplier T&C</button>
+          <div className="flex gap-2">
+            {user && (
+              <button onClick={() => { setEditListing(null); setShowListModal(true); }}
+                className="flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 text-pearl px-4 py-2 rounded-lg text-xs font-bold hover:bg-white/25 transition-all">
+                <PlusCircle className="w-4 h-4" /> List a Vehicle
+              </button>
+            )}
+            <button onClick={() => navigate("/terms")} className="bg-white/10 backdrop-blur-sm border border-white/20 text-pearl px-4 py-2 rounded-lg text-xs font-bold hover:bg-white/20 transition-all">📄 Supplier T&C</button>
+          </div>
         </div>
       </div>
       <TrustBanner stats={[
