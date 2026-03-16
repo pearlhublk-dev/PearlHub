@@ -366,6 +366,13 @@ const EventsPage = () => {
           listingTitle={selected.title}
         />
       )}
+
+      <EventListingModal
+        open={showListModal}
+        onClose={() => { setShowListModal(false); setEditListing(null); }}
+        onSuccess={() => { fetchListings(); showToast(editListing ? "Event updated!" : "Event published!", "success"); }}
+        editData={editListing}
+      />
     </div>
   );
 };
