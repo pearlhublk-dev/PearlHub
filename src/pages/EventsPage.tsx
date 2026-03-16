@@ -57,7 +57,8 @@ const EventsPage = () => {
 
   const eventCategories = [{ id: "all", label: "All Events" }, { id: "cinema", label: "🎬 Cinema" }, { id: "concert", label: "🎵 Concerts" }, { id: "sports", label: "🏏 Sports" }];
 
-  const filtered = data.events.filter(e => filter === "all" || e.category === filter);
+  const allEvents = [...dbAsEvents, ...data.events];
+  const filtered = allEvents.filter(e => filter === "all" || e.category === filter);
 
   const toggleSeat = (idx: number) => {
     if (!selected || selected.seats.booked.includes(idx)) return;
