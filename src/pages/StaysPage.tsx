@@ -159,6 +159,25 @@ const StaysPage = () => {
                   {stay.stars > 0 && <span className="absolute top-2.5 left-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-primary/15 text-gold-dark">{stay.stars}⭐</span>}
                   <button onClick={e => { e.stopPropagation(); addToCompare({ id: stay.id, title: stay.name, itemType: "stay", location: stay.location, price: stay.pricePerNight, priceUnit: "/night", rating: stay.rating, subtype: stay.type, details: `${stay.rooms} rooms • ${stay.stars}⭐`, features: stay.amenities.slice(0,3).join(", ") }); showToast(compareItems.length >= 3 ? "Max 3 items" : "Added to compare", compareItems.length >= 3 ? "warning" : "success"); }}
                     className="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center text-sm cursor-pointer" title="Compare">📊</button>
+                  {user && dbListings.some(l => l.id === stay.id && l.user_id === user.id) && (
+                    <div className="absolute top-2.5 right-2.5 flex gap-1">
+                      <button onClick={e => { e.stopPropagation(); setEditListing(dbListings.find(l => l.id === stay.id)!); setShowListModal(true); }}
+                        className="w-7 h-7 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all" title="Edit">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <button onClick={e => e.stopPropagation()} className="w-7 h-7 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all" title="Delete">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent onClick={e => e.stopPropagation()}>
+                          <AlertDialogHeader><AlertDialogTitle>Delete this listing?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => deleteListing(stay.id)}>Delete</AlertDialogAction></AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4">
                   <div className="font-display text-base font-bold mb-1">{stay.name}</div>
