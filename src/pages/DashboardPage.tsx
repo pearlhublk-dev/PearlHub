@@ -7,6 +7,8 @@ import RateManagement from "@/components/RateManagement";
 import LankaPayModal from "@/components/LankaPayModal";
 import ImageUpload from "@/components/ImageUpload";
 import PropertyListingModal, { PropertyListing } from "@/components/PropertyListingModal";
+import StayListingModal from "@/components/StayListingModal";
+import EventListingModal from "@/components/EventListingModal";
 
 const DashboardPage = () => {
   const { data, currentUser, showToast } = useAppContext();
@@ -16,28 +18,41 @@ const DashboardPage = () => {
   const displayName = profile?.full_name || mockUser.name;
   const displayEmail = profile?.email || mockUser.email;
 
-  const fetchPropertyListings = async () => {
+  const fetchListings = async () => {
     if (!user) return;
+
+    const config = listingConfig[currentUser] || listingConfig.owner;
     const { data: listings } = await supabase
-      .from("properties_listings")
+      .from(config.table)
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-    setPropertyListings((listings as PropertyListing[]) || []);
+
+    setListings(listings || []);
   };
 
   useEffect(() => {
-    fetchPropertyListings();
-  }, [user]);
+    fetchListings();
+  }, [user, currentUser]);
 
   const roleColorMap: Record<string, string> = { customer: "bg-emerald", owner: "bg-sapphire", broker: "bg-primary", admin: "bg-ruby", stay_provider: "bg-teal", event_organizer: "bg-indigo", sme: "bg-primary" };
   const roleColor = roleColorMap[currentUser] || "bg-primary";
 
   const [showPayment, setShowPayment] = useState(false);
   const [paymentCtx, setPaymentCtx] = useState({ amount: 0, description: "", onSuccess: () => {} });
-  const [propertyListings, setPropertyListings] = useState<PropertyListing[]>([]);
-  const [showPropertyModal, setShowPropertyModal] = useState(false);
-  const [editProperty, setEditProperty] = useState<PropertyListing | null>(null);
+  const [listings, setListings] = useState<any[]>([]);
+  const [showListingModal, setShowListingModal] = useState(false);
+  const [editListing, setEditListing] = useState<any | null>(null);
+
+  const listingConfig: Record<string, { table: string; label: string; modal: "property" | "stay" | "event" }> = {
+    customer: { table: "properties_listings", label: "Property", modal: "property" },
+    owner: { table: "properties_listings", label: "Property", modal: "property" },
+    broker: { table: "properties_listings", label: "Property", modal: "property" },
+    stay_provider: { table: "stays_listings", label: "Stay", modal: "stay" },
+    event_organizer: { table: "events_listings", label: "Event", modal: "event" },
+    sme: { table: "properties_listings", label: "SME", modal: "property" },
+    admin: { table: "properties_listings", label: "Property", modal: "property" },
+  };
 
   const navItems: Record<string, { id: string; label: string; icon: string }[]> = {
     customer: [
@@ -314,7 +329,13 @@ const DashboardPage = () => {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl">My Listings</h2>
-              <button onClick={() => { setEditProperty(null); setShowPropertyModal(true); }} className="bg-primary hover:bg-gold-light text-primary-foreground px-5 py-2.5 rounded-lg font-bold text-sm">
+              <button
+                onClick={() => {
+                  setEditListing(null);
+                  setShowListingModal(true);
+                }}
+                className="bg-primary hover:bg-gold-light text-primary-foreground px-5 py-2.5 rounded-lg font-bold text-sm"
+              >
                 ➕ Add New
               </button>
             </div>
@@ -332,14 +353,14 @@ const DashboardPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {propertyListings.length === 0 ? (
+                    {listings.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="p-8 text-center text-muted-foreground">
-                          No listings found. Click "Add New" to create your first property listing.
+                          No listings found. Click "Add New" to create your first listing.
                         </td>
                       </tr>
                     ) : (
-                      propertyListings.map((p) => (
+                      listings.map((p) => (
                         <tr key={p.id} className="border-b border-border hover:bg-background">
                           <td className="p-3">
                             <div className="flex items-center gap-2.5">
@@ -356,10 +377,10 @@ const DashboardPage = () => {
                           </td>
                           <td className="p-3">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold capitalize ${p.type === "sale" ? "bg-emerald/10 text-emerald" : p.type === "rent" ? "bg-sapphire/10 text-sapphire" : "bg-primary/15 text-gold-dark"}`}>
-                              {p.type}
+                              {p.type || "n/a"}
                             </span>
                           </td>
-                          <td className="p-3 font-bold">Rs. {p.price.toLocaleString()}</td>
+                          <td className="p-3 font-bold">Rs. {(p.price || p.price_per_night || 0).toLocaleString()}</td>
                           <td className="p-3">
                             <div className="flex flex-col gap-1">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${p.active ? "bg-emerald/10 text-emerald" : "bg-ruby/10 text-ruby"}`}>
@@ -371,15 +392,16 @@ const DashboardPage = () => {
                           <td className="p-3">
                             <div className="flex gap-2">
                               <button
-                                onClick={() => { setEditProperty(p); setShowPropertyModal(true); }}
+                                onClick={() => { setEditListing(p); setShowListingModal(true); }}
                                 className="text-xs font-semibold px-3 py-1 rounded-lg bg-sapphire/10 text-sapphire hover:bg-sapphire/15"
                               >
                                 Edit
                               </button>
                               <button
                                 onClick={async () => {
-                                  await supabase.from("properties_listings").delete().eq("id", p.id);
-                                  setPropertyListings((prev) => prev.filter((item) => item.id !== p.id));
+                                  const config = listingConfig[currentUser] || listingConfig.owner;
+                                  await supabase.from(config.table).delete().eq("id", p.id);
+                                  setListings((prev) => prev.filter((item) => item.id !== p.id));
                                   showToast("Listing deleted", "success");
                                 }}
                                 className="text-xs font-semibold px-3 py-1 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/15"
@@ -754,15 +776,41 @@ const DashboardPage = () => {
 
       <LankaPayModal open={showPayment} onClose={() => setShowPayment(false)} amount={paymentCtx.amount} description={paymentCtx.description} onSuccess={paymentCtx.onSuccess} />
 
-      <PropertyListingModal
-        open={showPropertyModal}
-        onClose={() => setShowPropertyModal(false)}
-        onSuccess={() => {
-          fetchPropertyListings();
-          showToast("Listing saved", "success");
-        }}
-        editData={editProperty}
-      />
+      {listingConfig[currentUser]?.modal === "property" && (
+        <PropertyListingModal
+          open={showListingModal}
+          onClose={() => setShowListingModal(false)}
+          onSuccess={() => {
+            fetchListings();
+            showToast("Listing saved", "success");
+          }}
+          editData={editListing}
+        />
+      )}
+
+      {listingConfig[currentUser]?.modal === "stay" && (
+        <StayListingModal
+          open={showListingModal}
+          onClose={() => setShowListingModal(false)}
+          onSuccess={() => {
+            fetchListings();
+            showToast("Listing saved", "success");
+          }}
+          editData={editListing}
+        />
+      )}
+
+      {listingConfig[currentUser]?.modal === "event" && (
+        <EventListingModal
+          open={showListingModal}
+          onClose={() => setShowListingModal(false)}
+          onSuccess={() => {
+            fetchListings();
+            showToast("Listing saved", "success");
+          }}
+          editData={editListing}
+        />
+      )}
     </div>
   );
 };
