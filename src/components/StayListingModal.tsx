@@ -25,6 +25,7 @@ interface StayListing {
   amenities: string[];
   images: string[];
   approved: boolean;
+  active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -99,6 +100,7 @@ const StayListingModal = ({ open, onClose, onSuccess, editData }: Props) => {
       amenities: form.amenities,
       images: form.images,
       updated_at: new Date().toISOString(),
+      moderation_status: editData ? editData.moderation_status : 'pending', // New listings start as pending
     };
 
     let error;

@@ -27,7 +27,7 @@ const VehiclesPage = () => {
   const [editListing, setEditListing] = useState<VehicleListing | null>(null);
 
   const fetchListings = useCallback(async () => {
-    const { data: rows } = await supabase.from("vehicles_listings").select("*").order("created_at", { ascending: false });
+    const { data: rows } = await supabase.from("vehicles_listings").select("*").eq("moderation_status", "approved").eq("active", true).order("created_at", { ascending: false });
     if (rows) setDbListings(rows as unknown as VehicleListing[]);
   }, []);
 

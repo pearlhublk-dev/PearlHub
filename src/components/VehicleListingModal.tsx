@@ -78,6 +78,7 @@ const VehicleListingModal = ({ open, onClose, onSuccess, editData }: Props) => {
       price: form.price, price_unit: form.price_unit, seats: form.seats, ac: form.ac,
       driver: form.driver, fuel: form.fuel, location: form.location, images: form.images,
       updated_at: new Date().toISOString(),
+      moderation_status: editData ? editData.moderation_status : 'pending', // New listings start as pending
     };
     let error;
     if (editData) {

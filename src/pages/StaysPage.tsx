@@ -9,6 +9,7 @@ import ShareButtons from "@/components/ShareButtons";
 import ReviewSection from "@/components/ReviewSection";
 import ComparisonTool from "@/components/ComparisonTool";
 import StayListingModal, { StayListing } from "@/components/StayListingModal";
+import ReportButton from "@/components/ReportButton";
 import { Stay } from "@/types/pearl-hub";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +26,7 @@ const StaysPage = () => {
   const [editListing, setEditListing] = useState<StayListing | null>(null);
 
   const fetchListings = useCallback(async () => {
-    const { data: rows } = await supabase.from("stays_listings").select("*").order("created_at", { ascending: false });
+    const { data: rows } = await supabase.from("stays_listings").select("*").eq("moderation_status", "approved").eq("active", true).order("created_at", { ascending: false });
     if (rows) setDbListings(rows as unknown as StayListing[]);
   }, []);
 
@@ -155,10 +156,23 @@ const StaysPage = () => {
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-sapphire/10 to-sapphire/[0.03] flex items-center justify-center text-6xl">{stay.image}</div>
                   )}
-                  {stay.approved && <span className="absolute top-2.5 right-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald/10 text-emerald">✓ STB Approved</span>}
                   {stay.stars > 0 && <span className="absolute top-2.5 left-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-primary/15 text-gold-dark">{stay.stars}⭐</span>}
+                  <span className={`absolute top-2.5 right-2.5 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${dbListings.find(l => l.id === stay.id)?.active ? 'bg-emerald/10 text-emerald' : 'bg-ruby/10 text-ruby'}`}>
+                    {dbListings.find(l => l.id === stay.id)?.active ? 'Active' : 'Inactive'}
+                  </span>
+                  {dbListings.find(l => l.id === stay.id)?.user_id && (
+                    <div className="absolute bottom-10 left-2.5 flex flex-wrap gap-1">
+                      {/* Placeholder for verification badges - would fetch from profiles */}
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-blue-100 text-blue-800">SLTDA Verified</span>
+                    </div>
+                  )}
                   <button onClick={e => { e.stopPropagation(); addToCompare({ id: stay.id, title: stay.name, itemType: "stay", location: stay.location, price: stay.pricePerNight, priceUnit: "/night", rating: stay.rating, subtype: stay.type, details: `${stay.rooms} rooms • ${stay.stars}⭐`, features: stay.amenities.slice(0,3).join(", ") }); showToast(compareItems.length >= 3 ? "Max 3 items" : "Added to compare", compareItems.length >= 3 ? "warning" : "success"); }}
                     className="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center text-sm cursor-pointer" title="Compare">📊</button>
+                  {user && !dbListings.some(l => l.id === stay.id && l.user_id === user.id) && (
+                    <div className="absolute bottom-2.5 left-2.5">
+                      <ReportButton listingId={stay.id} listingType="stay" reportedUserId={dbListings.find(l => l.id === stay.id)?.user_id} />
+                    </div>
+                  )}
                   {user && dbListings.some(l => l.id === stay.id && l.user_id === user.id) && (
                     <div className="absolute top-2.5 right-2.5 flex gap-1">
                       <button onClick={e => { e.stopPropagation(); setEditListing(dbListings.find(l => l.id === stay.id)!); setShowListModal(true); }}

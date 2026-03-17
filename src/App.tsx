@@ -25,6 +25,7 @@ const SearchResultsPage = lazy(() => import("@/pages/SearchResultsPage"));
 const SocialPage = lazy(() => import("@/pages/SocialPage"));
 const TermsPage = lazy(() => import("@/pages/TermsPage"));
 const ForBusinessPage = lazy(() => import("@/pages/ForBusinessPage"));
+const AdminPage = lazy(() => import("@/pages/AdminPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const AppLayout = () => (
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<TermsPage />} />
         <Route path="/for-business" element={<ForBusinessPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

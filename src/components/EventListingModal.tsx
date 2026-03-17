@@ -84,6 +84,7 @@ const EventListingModal = ({ open, onClose, onSuccess, editData }: Props) => {
       price_standard: form.price_standard, price_premium: form.price_premium, price_vip: form.price_vip,
       total_seats: form.total_seats, seat_rows: form.seat_rows, seat_cols: form.seat_cols,
       images: form.images, updated_at: new Date().toISOString(),
+      moderation_status: editData ? editData.moderation_status : 'pending', // New listings start as pending
     };
     let error;
     if (editData) {

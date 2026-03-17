@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend, AreaChart, Area } from "recharts";
 
 const monthlyData = [
@@ -31,16 +33,59 @@ const trafficData = [
 
 const AnalyticsDashboard = () => {
   const { currentUser } = useAppContext();
+  const { user } = useAuth();
   const [dateRange, setDateRange] = useState("30d");
+  const [analyticsData, setAnalyticsData] = useState<any>({});
+  const [loading, setLoading] = useState(true);
   const isAdmin = currentUser === "admin";
 
-  const topListings = [
-    { name: "Luxury Villa – Colombo 7", views: 342, enquiries: 18, type: "property" },
-    { name: "Shangri-La Colombo", views: 289, enquiries: 45, type: "stay" },
-    { name: "Beach House – Negombo", views: 421, enquiries: 22, type: "property" },
-    { name: "Toyota Prius", views: 156, enquiries: 34, type: "vehicle" },
-    { name: "Bathiya & Santhush Live", views: 890, enquiries: 120, type: "event" },
-  ];
+  useEffect(() => {
+    if (user) {
+      fetchAnalytics();
+    }
+  }, [user]);
+
+  const fetchAnalytics = async () => {
+    setLoading(true);
+
+    if (isAdmin) {
+      // Admin sees global analytics
+      const { data: bookings } = await supabase.from('bookings').select('*');
+      const { data: earnings } = await supabase.from('earnings').select('*');
+      const { data: languages } = await supabase.from('user_languages').select('*');
+
+      const totalRevenue = earnings?.reduce((sum, e) => sum + e.net_amount, 0) || 0;
+      const totalBookings = bookings?.length || 0;
+      const topLanguages = languages?.reduce((acc: any, lang) => {
+        acc[lang.language] = (acc[lang.language] || 0) + 1;
+        return acc;
+      }, {}) || {};
+
+      setAnalyticsData({
+        totalRevenue,
+        totalBookings,
+        topLanguages: Object.entries(topLanguages).sort((a: any, b: any) => b[1] - a[1]).slice(0, 5)
+      });
+    } else {
+      // Provider sees their own analytics
+      const { data: earnings } = await supabase.from('earnings').select('*').eq('provider_id', user.id);
+      const { data: bookings } = await supabase.from('bookings').select('*').eq('user_id', user.id);
+      const { data: languages } = await supabase.from('user_languages').select('*').eq('user_id', user.id);
+
+      const totalEarnings = earnings?.reduce((sum, e) => sum + e.net_amount, 0) || 0;
+      const totalBookings = bookings?.length || 0;
+      const occupancyRate = totalBookings > 0 ? (bookings.filter(b => b.status === 'completed').length / totalBookings * 100) : 0;
+
+      setAnalyticsData({
+        totalEarnings,
+        totalBookings,
+        occupancyRate,
+        topLanguages: languages?.map(l => l.language) || []
+      });
+    }
+
+    setLoading(false);
+  };
 
   return (
     <div>
@@ -67,20 +112,20 @@ const AnalyticsDashboard = () => {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {(isAdmin ? [
-          { icon: "💰", label: "Total Revenue", value: "Rs. 3.9M", change: "+18%", positive: true },
-          { icon: "👥", label: "Total Users", value: "4,280", change: "+12%", positive: true },
+          { icon: "💰", label: "Total Revenue", value: `Rs. ${analyticsData.totalRevenue?.toLocaleString() || 0}`, change: "+18%", positive: true },
+          { icon: "👥", label: "Total Bookings", value: analyticsData.totalBookings || 0, change: "+12%", positive: true },
           { icon: "🏠", label: "Active Listings", value: "12,400", change: "+8%", positive: true },
-          { icon: "📊", label: "Conversion Rate", value: "3.2%", change: "+0.4%", positive: true },
+          { icon: "📊", label: "Top Language", value: analyticsData.topLanguages?.[0]?.[0] || 'N/A', change: "", positive: true },
         ] : [
-          { icon: "👁", label: "Total Views", value: "1,245", change: "+24%", positive: true },
-          { icon: "📩", label: "Enquiries", value: "23", change: "+15%", positive: true },
-          { icon: "💰", label: "Revenue", value: "Rs. 850K", change: "+10%", positive: true },
-          { icon: "📈", label: "Click Rate", value: "4.8%", change: "+1.2%", positive: true },
+          { icon: "💰", label: "Total Earnings", value: `Rs. ${analyticsData.totalEarnings?.toLocaleString() || 0}`, change: "+10%", positive: true },
+          { icon: "📅", label: "Total Bookings", value: analyticsData.totalBookings || 0, change: "+15%", positive: true },
+          { icon: "🏠", label: "Occupancy Rate", value: `${analyticsData.occupancyRate?.toFixed(1) || 0}%`, change: "+5%", positive: true },
+          { icon: "🌐", label: "Languages", value: analyticsData.topLanguages?.join(', ') || 'N/A', change: "", positive: true },
         ]).map(kpi => (
           <div key={kpi.label} className="bg-card rounded-xl p-4 border border-border">
             <div className="flex justify-between items-start mb-2">
               <span className="text-2xl">{kpi.icon}</span>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${kpi.positive ? "bg-emerald/10 text-emerald" : "bg-ruby/10 text-ruby"}`}>{kpi.change}</span>
+              {kpi.change && <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${kpi.positive ? "bg-emerald/10 text-emerald" : "bg-ruby/10 text-ruby"}`}>{kpi.change}</span>}
             </div>
             <div className="text-xl font-bold">{kpi.value}</div>
             <div className="text-xs text-muted-foreground">{kpi.label}</div>
