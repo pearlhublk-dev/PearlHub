@@ -155,6 +155,30 @@ const AdminPage = () => {
     loadAdminData();
   };
 
+  const updateReportStatus = async (reportId: string, status: string) => {
+    const { error } = await supabase
+      .from('user_reports')
+      .update({ status })
+      .eq('id', reportId);
+
+    if (error) {
+      toast.error('Failed to update report status');
+      return;
+    }
+
+    // Log admin action
+    await supabase.from('admin_actions').insert({
+      admin_id: user!.id,
+      action_type: 'report_update',
+      target_type: 'report',
+      target_id: reportId,
+      details: { status }
+    });
+
+    toast.success('Report status updated');
+    setReports((prev) => prev.map(r => (r.id === reportId ? { ...r, status } : r)));
+  };
+
   const suspendUser = async (userId: string, reason: string) => {
     // Update user status (assuming we add a suspended field to profiles)
     const { error } = await supabase
