@@ -14,9 +14,24 @@ const DashboardPage = () => {
   const { data, currentUser, showToast } = useAppContext();
   const { user, profile } = useAuth();
   const [activeSection, setActiveSection] = useState("overview");
-  const mockUser = data.users[currentUser];
-  const displayName = profile?.full_name || mockUser.name;
-  const displayEmail = profile?.email || mockUser.email;
+
+  const defaultMockUser = {
+    id: "",
+    name: "Pearl Hub User",
+    email: "",
+    role: currentUser,
+    phone: "",
+    joined: "",
+    bookings: 0,
+    spent: 0,
+    listings: 0,
+    revenue: 0,
+    verified: false,
+  };
+
+  const mockUser = data.users[currentUser] ?? defaultMockUser;
+  const displayName = profile?.full_name || mockUser.name || "Pearl Hub User";
+  const displayEmail = profile?.email || mockUser.email || "";
 
   const fetchListings = async () => {
     if (!user) return;
