@@ -38,6 +38,7 @@ export const INITIAL_DATA: AppData = {
     broker: { id: "U003", name: "Priya Silva & Associates", email: "priya@realty.lk", role: "broker", phone: "+94 11 234 5678", joined: "2023-03-01", listings: 38, revenue: 4200000, membership: "active", memberships_remaining: 27, verified: true },
     stay_provider: { id: "U005", name: "Serendib Stays", email: "contact@serendibstays.lk", role: "stay_provider", phone: "+94 77 555 1234", joined: "2023-11-01", listings: 12, revenue: 980000, verified: true },
     event_organizer: { id: "U006", name: "Lanka Events Co.", email: "events@lanka.events", role: "event_organizer", phone: "+94 70 123 4567", joined: "2024-01-10", listings: 8, revenue: 420000, verified: true },
+    vehicle_provider: { id: "U008", name: "Sri Lanka Rent Fleet", email: "fleet@srilanka-rent.lk", role: "vehicle_provider", phone: "+94 75 112 3456", joined: "2023-08-15", listings: 24, revenue: 1200000, verified: true },
     sme: { id: "U007", name: "Island Crafts SME", email: "hello@islandcrafts.lk", role: "sme", phone: "+94 76 789 0123", joined: "2024-02-08", listings: 5, revenue: 180000, verified: false },
     admin: { id: "U004", name: "Pearl Hub Admin", email: "admin@pearlhub.lk", role: "admin" },
   },

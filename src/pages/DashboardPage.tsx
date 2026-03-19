@@ -9,6 +9,7 @@ import ImageUpload from "@/components/ImageUpload";
 import PropertyListingModal, { PropertyListing } from "@/components/PropertyListingModal";
 import StayListingModal from "@/components/StayListingModal";
 import EventListingModal from "@/components/EventListingModal";
+import VehicleListingModal from "@/components/VehicleListingModal";
 
 const DashboardPage = () => {
   const { data, currentUser, showToast } = useAppContext();
@@ -50,7 +51,7 @@ const DashboardPage = () => {
     fetchListings();
   }, [user, currentUser]);
 
-  const roleColorMap: Record<string, string> = { customer: "bg-emerald", owner: "bg-sapphire", broker: "bg-primary", admin: "bg-ruby", stay_provider: "bg-teal", event_organizer: "bg-indigo", sme: "bg-primary" };
+  const roleColorMap: Record<string, string> = { customer: "bg-emerald", owner: "bg-sapphire", broker: "bg-primary", admin: "bg-ruby", stay_provider: "bg-teal", vehicle_provider: "bg-rose", event_organizer: "bg-indigo", sme: "bg-amber" };
   const roleColor = roleColorMap[currentUser] || "bg-primary";
 
   const [showPayment, setShowPayment] = useState(false);
@@ -59,13 +60,14 @@ const DashboardPage = () => {
   const [showListingModal, setShowListingModal] = useState(false);
   const [editListing, setEditListing] = useState<any | null>(null);
 
-  const listingConfig: Record<string, { table: string; label: string; modal: "property" | "stay" | "event" }> = {
+  const listingConfig: Record<string, { table: string; label: string; modal: "property" | "stay" | "event" | "vehicle" | "social" }> = {
     customer: { table: "properties_listings", label: "Property", modal: "property" },
     owner: { table: "properties_listings", label: "Property", modal: "property" },
     broker: { table: "properties_listings", label: "Property", modal: "property" },
     stay_provider: { table: "stays_listings", label: "Stay", modal: "stay" },
+    vehicle_provider: { table: "vehicles_listings", label: "Vehicle", modal: "vehicle" },
     event_organizer: { table: "events_listings", label: "Event", modal: "event" },
-    sme: { table: "properties_listings", label: "SME", modal: "property" },
+    sme: { table: "social_listings", label: "Business", modal: "social" },
     admin: { table: "properties_listings", label: "Property", modal: "property" },
   };
 
@@ -125,6 +127,17 @@ const DashboardPage = () => {
       { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
+    vehicle_provider: [
+      { id: "overview", label: "Overview", icon: "📊" },
+      { id: "listings", label: "My Vehicles", icon: "🚗" },
+      { id: "enquiries", label: "Enquiries", icon: "📩" },
+      { id: "analytics", label: "Analytics", icon: "📈" },
+      { id: "rates", label: "Rate Management", icon: "⚙️" },
+      { id: "pricing", label: "Fees & Pricing", icon: "💳" },
+      { id: "revenue", label: "Revenue", icon: "💰" },
+      { id: "compliance", label: "Compliance", icon: "📋" },
+      { id: "profile", label: "Profile", icon: "👤" },
+    ],
     event_organizer: [
       { id: "overview", label: "Overview", icon: "📊" },
       { id: "listings", label: "My Events", icon: "🎭" },
@@ -138,8 +151,9 @@ const DashboardPage = () => {
     ],
     sme: [
       { id: "overview", label: "Overview", icon: "📊" },
-      { id: "listings", label: "My Listings", icon: "🏪" },
-      { id: "enquiries", label: "Enquiries", icon: "📩" },
+      { id: "listings", label: "My Business", icon: "🏪" },
+      { id: "products", label: "Products & Services", icon: "📦" },
+      { id: "analytics", label: "Analytics", icon: "📈" },
       { id: "compliance", label: "Compliance", icon: "📋" },
       { id: "profile", label: "Profile", icon: "👤" },
     ],
@@ -207,9 +221,16 @@ const DashboardPage = () => {
                   <StatCard icon="💰" label="Platform Revenue" value="Rs. 3.9M" color="text-primary" />
                   <StatCard icon="📈" label="Monthly Growth" value="+18%" color="text-emerald" />
                 </>
+              ) : currentUser === "sme" ? (
+                <>
+                  <StatCard icon="🏪" label="Business Active" value="Yes" color="text-amber" />
+                  <StatCard icon="📦" label="Products & Services" value={String(mockUser.listings || 0)} color="text-primary" />
+                  <StatCard icon="💰" label="Revenue" value={`Rs. ${(mockUser.revenue || 0).toLocaleString()}`} color="text-emerald" />
+                  <StatCard icon="👁" label="Business Views" value="456" color="text-ruby" />
+                </>
               ) : (
                 <>
-                  <StatCard icon="🏠" label="Active Listings" value={String(mockUser.listings || 0)} color="text-sapphire" />
+                  <StatCard icon={currentUser === "vehicle_provider" ? "🚗" : currentUser === "stay_provider" ? "🏨" : "🎭"} label="Active Listings" value={String(mockUser.listings || 0)} color="text-sapphire" />
                   <StatCard icon="💰" label="Revenue" value={`Rs. ${(mockUser.revenue || 0).toLocaleString()}`} color="text-primary" />
                   <StatCard icon="👁" label="Total Views" value="1,245" color="text-emerald" />
                   <StatCard icon="📩" label="Enquiries" value="23" color="text-ruby" />
@@ -825,6 +846,33 @@ const DashboardPage = () => {
           }}
           editData={editListing}
         />
+      )}
+
+      {listingConfig[currentUser]?.modal === "vehicle" && (
+        <VehicleListingModal
+          open={showListingModal}
+          onClose={() => setShowListingModal(false)}
+          onSuccess={() => {
+            fetchListings();
+            showToast("Listing saved", "success");
+          }}
+          editData={editListing}
+        />
+      )}
+
+      {listingConfig[currentUser]?.modal === "social" && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card rounded-xl p-6 border border-border max-w-2xl w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Register Your Business</h2>
+              <button onClick={() => setShowListingModal(false)} className="text-xl">✕</button>
+            </div>
+            <p className="text-muted-foreground mb-4">Register your business and list products/services on Pearl Hub Social. Coming soon!</p>
+            <button onClick={() => setShowListingModal(false)} className="bg-primary hover:bg-gold-light text-primary-foreground px-6 py-2.5 rounded-lg font-bold">
+              Close
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
